@@ -12,17 +12,17 @@ procedures (NFRV-xx). Both sets are referenced from `docs/RTM.md`.
 | TC-03 | Built-in echo | `echo hello` | `hello` printed. | Automated |
 | TC-04 | Directory change | `cd /tmp` then `pwd` | `/tmp` printed. | Automated |
 | TC-05 | Quoted argument | `echo "hello world"` | One argument printed with space preserved. | Automated |
-| TC-06 | Escaped character | `echo hello\ world` | `hello world` printed as a single argument. | Manual |
+| TC-06 | Escaped character | `echo hello\ world` | `hello world` printed as a single argument. | Automated |
 | TC-07 | Input redirection | `cat < file` | File contents printed. | Automated |
 | TC-08 | Output overwrite | `echo x > file` | File contains `x`. | Automated |
 | TC-09 | Output append | `echo y >> file` | `y` appended. | Automated |
 | TC-10 | EOF | Ctrl-D | Shell exits cleanly. | Automated * |
 | TC-11 | Syntax error | `echo "unterminated` | Error shown on stderr; shell remains alive. | Automated |
 | TC-12 | Two-command pipe | `printf "a\nb\n" \| wc -l` | `2` produced. | Automated |
-| TC-13 | Background | `sleep 2 &` | Prompt returns without waiting; child is later reaped. | Manual |
+| TC-13 | Background | `sleep 2 &` | Prompt returns without waiting; child is later reaped. | Automated |
 | TC-14 | Invalid command | `not-a-real-command` | Error shown on stderr; shell remains alive. | Automated |
-| TC-15 | Missing input file | `cat < missing` | Error shown on stderr; shell remains alive. | Manual |
-| TC-16 | Foreground synchronization | `sleep 1` | Next prompt appears only after the process completes. | Manual |
+| TC-15 | Missing input file | `cat < missing` | Error shown on stderr; shell remains alive. | Automated |
+| TC-16 | Foreground synchronization | `sleep 1` | Next prompt appears only after the process completes. | Automated |
 | TC-17 | Stress/regression | Automated suite repeated; long pipeline such as `seq 10000 \| wc -l` | No crashes and no failing assertions. | Manual |
 | TC-18 | Built-in help | `help` | Command list is printed, including the supported operators. | Automated |
 
@@ -62,8 +62,5 @@ under ASan or UBSan.
 
 ## 4. Known coverage gaps
 
-- TC-06, TC-13, TC-15, TC-16 and TC-17 are documented but not automated.
-- TC-13 (background) and TC-16 (foreground synchronisation) are the only tests backing FR-07 and
-  FR-09, so those requirements currently have no automated regression protection.
-- TC-16 is timing-dependent and should be automated only with an assertion that tolerates scheduler
-  noise.
+- TC-17 (stress / regression) is maintained as a periodic stress test prior to tag release.
+- All functional requirements (FR-01 through FR-10) now possess automated coverage in `tests/test_shell.sh` and `tests/test_parser.c`.

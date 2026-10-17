@@ -43,12 +43,13 @@ The suite is expected to report:
   (basic argument parsing, double-quoted argument, pipeline parsing, redirection parsing, append
   redirection parsing, unterminated quote rejected, leading pipe rejected, trailing pipe rejected,
   non-terminal background operator rejected)
-- **Shell integration tests** — 11 scenarios, ending with `Total: 11 passed, 0 failed`
-  (echo, quoted echo, external command, help, input redirection, output redirection, append
-  redirection, pipeline, invalid command, `cd`, malformed input)
+- **Shell integration tests** — 15 scenarios, ending with `Total: 15 passed, 0 failed`
+  (echo, quoted echo, escaped space, external command, help, input redirection, output redirection, append
+  redirection, pipeline, invalid command, `cd`, malformed input, missing input file recovery,
+  foreground process synchronization, background execution non-blocking)
 - **ASan/UBSan** — no sanitizer diagnostics and no leaks
 
-Total expected: **20 checks, 0 failures**.
+Total expected: **24 checks, 0 failures**.
 
 If the real run differs from this, the difference must be explained here rather than the expectation
 being edited to match.
@@ -81,10 +82,6 @@ These scenarios are documented but not automated, and must be exercised manually
 
 | Test | What to confirm |
 |---|---|
-| TC-06 | `echo hello\ world` prints a single argument `hello world` |
-| TC-13 | `sleep 2 &` returns the prompt immediately; the child is later reaped |
-| TC-15 | `cat < missing` reports an error and the shell stays usable |
-| TC-16 | `sleep 1` returns the prompt only after the process completes |
 | TC-17 | Long pipelines (`seq 10000 \| wc -l`) and repeated runs produce no crashes |
 
 ## 7. Limitations

@@ -16,9 +16,9 @@ non-functional requirements are defined in `docs/Test_Cases.md`.
 | FR-04 | Command parsing | UC-02 | `src/parser.c` | TC-05, TC-06, TC-11 | Automated | SH-REQ-04 | Work in progress |
 | FR-05 | Input/output redirection | UC-06 | `src/parser.c`, `src/executor.c` | TC-07, TC-08, TC-09 | Automated | SH-REQ-05 | Work in progress |
 | FR-06 | Pipelines | UC-07 | `src/parser.c`, `src/executor.c` | TC-12 | Automated | SH-REQ-06 | Work in progress |
-| FR-07 | Background execution | UC-08 | `src/parser.c`, `src/executor.c` | TC-13 | Manual | SH-REQ-07 | Work in progress |
+| FR-07 | Background execution | UC-08 | `src/parser.c`, `src/executor.c` | TC-13 | Automated | SH-REQ-07 | Work in progress |
 | FR-08 | Error handling | UC-02, UC-09 | `src/shell.c`, `src/parser.c`, `src/executor.c`, `src/builtins.c` | TC-11, TC-14, TC-15 | Automated | SH-REQ-08 | Work in progress |
-| FR-09 | Process synchronization | UC-03, UC-04 | `src/executor.c` | TC-16 | Manual | SH-REQ-09 | Work in progress |
+| FR-09 | Process synchronization | UC-03, UC-04 | `src/executor.c` | TC-16 | Automated | SH-REQ-09 | Work in progress |
 | FR-10 | Clean termination | UC-10 | `src/shell.c`, `src/builtins.c` | TC-01, TC-10 | Automated | SH-REQ-10 | Work in progress |
 
 ## 2. Non-functional requirements
@@ -53,6 +53,4 @@ These are known and deliberately left open rather than silently reported as cove
 
 | Gap | Affected | Note |
 |---|---|---|
-| Background execution is not covered by an automated test | FR-07, TC-13 | Manually exercised only. |
-| Foreground synchronisation is not covered by an automated test | FR-09, TC-16 | Timing-dependent; not currently automated. |
 | Stress/regression is not covered by an automated test | FR-01 / NFR-01, TC-17 | Run manually before release. |
