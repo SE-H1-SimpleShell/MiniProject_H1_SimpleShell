@@ -1,0 +1,68 @@
+@startuml Architecture
+!pragma layout smetana
+
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam roundCorner 8
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowColor #4A5568
+skinparam ComponentBackgroundColor #EBF4FF
+skinparam ComponentBorderColor #2B6CB0
+skinparam PackageBackgroundColor #F7FAFC
+skinparam PackageBorderColor #718096
+skinparam LegendBackgroundColor #FFFBE6
+skinparam LegendBorderColor #B7791F
+
+title Simple Shell - Component and Layered Architecture
+
+actor "User" as user
+
+package "Simple Shell (C11 / POSIX)" as app {
+
+  component "main.c\nEntry point" as main
+  component "shell.c\nREPL and orchestration\nshell_loop()" as shell
+  component "parser.c\nLexer and parser\nparse_line() / free_pipeline()" as parser
+  component "executor.c\nProcess execution\nexecute_pipeline() / reap_background()" as executor
+  component "builtins.c\nBuilt-in commands\nis_builtin() / run_builtin()" as builtins
+  database "Parser data model\nstruct Pipeline\nstruct Command" as model
+
+}
+
+package "C standard library" as libc {
+  component "malloc / free\nstrlen / memcpy\nsnprintf" as memlib
+}
+
+package "Operating system (POSIX)" as os {
+  component "Process control\nfork / execvp\nwaitpid" as proc
+  component "I/O and pipes\npipe / dup2 / open / close" as io
+  component "Filesystem and environment\nchdir / getcwd / PATH lookup" as fs
+}
+
+user --> shell : command line
+main --> shell : starts
+shell --> parser : parse_line()
+parser --> model : builds
+shell --> executor : execute_pipeline()
+shell --> model : owns / frees
+executor --> model : reads
+executor --> builtins : is_builtin() / run_builtin()
+executor --> proc : spawn and wait
+executor --> io : redirect and pipe
+builtins --> fs : cd / pwd
+parser --> memlib : allocate / release
+
+legend right
+  <b>Enforced parser limits</b>
+  MAX_ARGS = 128 arguments
+  MAX_PIPE_SEGMENTS = 32
+  Rejects unterminated quotes, a trailing
+  backslash and dangling operators.
+
+  <b>Execution model</b>
+  Foreground commands block in waitpid();
+  background jobs are reaped between prompts.
+  Stateful built-ins such as cd run in the parent.
+endlegend
+
+@enduml
