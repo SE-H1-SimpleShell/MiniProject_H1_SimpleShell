@@ -65,20 +65,140 @@ Paste the evidence for each phase below.
 ### 5.1 `make test`
 
 ```text
-<not yet recorded>
+mkdir -p build
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -c src/builtins.c -o build/builtins.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -c src/executor.c -o build/executor.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -c src/main.c -o build/main.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -c src/parser.c -o build/parser.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -c src/shell.c -o build/shell.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude build/builtins.o build/executor.o build/main.o build/parser.o build/shell.o -o simple-shell 
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -c tests/test_parser.c -o build/test_parser.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude build/test_parser.o build/parser.o -o build/test_parser 
+./build/test_parser
+PASS: basic argument parsing
+PASS: double-quoted argument
+PASS: pipeline parsing
+PASS: redirection parsing
+PASS: append redirection parsing
+PASS: unterminated quote rejected
+PASS: leading pipe rejected
+PASS: trailing pipe rejected
+PASS: non-terminal background operator rejected
+PASS: single-quoted argument is literal
+PASS: single quotes do not process escapes
+PASS: backslash outside quotes escapes a space
+PASS: backslash escapes an operator
+PASS: double quotes escape an embedded quote
+PASS: empty double-quoted argument preserved
+PASS: empty single-quoted argument preserved
+PASS: unterminated single quote rejected
+PASS: trailing backslash rejected
+PASS: maximum of 128 arguments accepted
+PASS: 129th argument rejected
+
+Parser tests: 0 failed
+bash tests/test_shell.sh ./simple-shell
+PASS: echo builtin
+PASS: quoted echo
+PASS: escaped space
+PASS: external command
+PASS: help builtin
+PASS: input redirection
+PASS: output redirection
+PASS: append redirection
+PASS: pipeline
+PASS: invalid command recovery
+PASS: cd builtin
+PASS: unterminated double quote recovery
+PASS: unterminated single quote recovery
+PASS: trailing backslash recovery
+PASS: dangling pipe recovery
+PASS: missing input file recovery
+PASS: foreground process synchronization
+PASS: background execution non-blocking
+
+Total: 18 passed, 0 failed
 ```
+
+Exit status: `0`. Total: **38 checks, 0 failures**.
 
 ### 5.2 `make asan-test`
 
 ```text
-<not yet recorded>
+rm -rf build simple-shell
+make CFLAGS='-std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -fsanitize=address,undefined -fno-omit-frame-pointer' LDFLAGS='-fsanitize=address,undefined' test
+make[1]: Entering directory '/tmp/simple-shell-run'
+mkdir -p build
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -fsanitize=address,undefined -fno-omit-frame-pointer -c src/builtins.c -o build/builtins.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -fsanitize=address,undefined -fno-omit-frame-pointer -c src/executor.c -o build/executor.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -fsanitize=address,undefined -fno-omit-frame-pointer -c src/main.c -o build/main.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -fsanitize=address,undefined -fno-omit-frame-pointer -c src/parser.c -o build/parser.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -fsanitize=address,undefined -fno-omit-frame-pointer -c src/shell.c -o build/shell.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -fsanitize=address,undefined -fno-omit-frame-pointer build/builtins.o build/executor.o build/main.o build/parser.o build/shell.o -o simple-shell -fsanitize=address,undefined
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -fsanitize=address,undefined -fno-omit-frame-pointer -c tests/test_parser.c -o build/test_parser.o
+gcc -std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes -g -Iinclude -fsanitize=address,undefined -fno-omit-frame-pointer build/test_parser.o build/parser.o -o build/test_parser -fsanitize=address,undefined
+./build/test_parser
+PASS: basic argument parsing
+PASS: double-quoted argument
+PASS: pipeline parsing
+PASS: redirection parsing
+PASS: append redirection parsing
+PASS: unterminated quote rejected
+PASS: leading pipe rejected
+PASS: trailing pipe rejected
+PASS: non-terminal background operator rejected
+PASS: single-quoted argument is literal
+PASS: single quotes do not process escapes
+PASS: backslash outside quotes escapes a space
+PASS: backslash escapes an operator
+PASS: double quotes escape an embedded quote
+PASS: empty double-quoted argument preserved
+PASS: empty single-quoted argument preserved
+PASS: unterminated single quote rejected
+PASS: trailing backslash rejected
+PASS: maximum of 128 arguments accepted
+PASS: 129th argument rejected
+
+Parser tests: 0 failed
+bash tests/test_shell.sh ./simple-shell
+PASS: echo builtin
+PASS: quoted echo
+PASS: escaped space
+PASS: external command
+PASS: help builtin
+PASS: input redirection
+PASS: output redirection
+PASS: append redirection
+PASS: pipeline
+PASS: invalid command recovery
+PASS: cd builtin
+PASS: unterminated double quote recovery
+PASS: unterminated single quote recovery
+PASS: trailing backslash recovery
+PASS: dangling pipe recovery
+PASS: missing input file recovery
+PASS: foreground process synchronization
+PASS: background execution non-blocking
+
+Total: 18 passed, 0 failed
+make[1]: Leaving directory '/tmp/simple-shell-run'
 ```
+
+Exit status: `0`. No AddressSanitizer or UndefinedBehaviorSanitizer diagnostics were emitted.
 
 ### 5.3 Environment
 
 ```text
-<not yet recorded>
+OS: Kali Linux under WSL 2 (Windows host)
+Kernel: Linux 6.6.87.2-microsoft-standard-WSL2 x86_64
+Compiler: gcc (Debian 16.2.0-1) 16.2.0
+Build tool: GNU Make 4.4.1
+Test shell: GNU bash 5.3.9(1)-release
+Sanitizers: AddressSanitizer + UndefinedBehaviorSanitizer (make asan-test)
 ```
+
+The suite was run from a temporary copy of the working tree with LF line endings, because the
+Windows checkout uses CRLF. The source files were unchanged by that copy.
 
 ## 6. Manual verification still outstanding
 
