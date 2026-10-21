@@ -9,5 +9,5 @@
 | GitHub Project board/sprint view | Pending capture | screenshots/05_GitHub_Project_Board.png |
 | Jira project/backlog/board, if required | Pending capture | screenshots/06_Jira_Project.png |
 
-Repository: https://github.com/ShrikarDesai07/MiniProject_H1_SimpleShell  
+Repository: https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell  
 GitHub Project: https://github.com/users/ShrikarDesai07/projects/5/views/1

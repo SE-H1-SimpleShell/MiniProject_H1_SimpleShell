@@ -13,7 +13,7 @@ On Ubuntu, if development tools are missing:
 
 ## Clone
 
-    git clone https://github.com/ShrikarDesai07/MiniProject_H1_SimpleShell.git
+    git clone https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell.git
     cd MiniProject_H1_SimpleShell
 
 For an existing clone, check git status and the current branch before pulling.
