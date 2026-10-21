@@ -1,5 +1,11 @@
 # Architecture and Design — Simple Shell
 
+![Component and layered architecture](Architecture.png)
+
+The editable PlantUML source is [Architecture.puml](Architecture.puml); a vector copy is
+[Architecture.svg](Architecture.svg). See the [folder README](README.md#regenerating-the-plantuml-diagram)
+for regeneration instructions.
+
 ## High-level flow
 
 ```text
