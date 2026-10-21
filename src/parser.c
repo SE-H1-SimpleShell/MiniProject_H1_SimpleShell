@@ -39,6 +39,15 @@ static int token_push(struct TokenList *list, char *text, int operator_token) {
     return 0;
 }
 
+static char *duplicate_string(const char *text) {
+    size_t length = strlen(text) + 1U;
+    char *copy = malloc(length);
+    if (copy != NULL) {
+        memcpy(copy, text, length);
+    }
+    return copy;
+}
+
 static int buffer_append(char **buffer, size_t *length, size_t *capacity, char c) {
     if (*length + 1U >= *capacity) {
         size_t new_capacity = (*capacity == 0U) ? 32U : (*capacity * 2U);
@@ -55,14 +64,17 @@ static int buffer_append(char **buffer, size_t *length, size_t *capacity, char c
 }
 
 static int flush_word(struct TokenList *tokens, char **buffer, size_t *length, size_t *capacity) {
-    if (*length == 0U) {
-        return 0;
-    }
+    /* Only called once a token has started, so an empty buffer is a valid
+       empty argument (for example, echo "" or echo ''). */
     char *word = malloc(*length + 1U);
     if (word == NULL) {
         return -1;
     }
-    memcpy(word, *buffer, *length + 1U);
+    if (*buffer != NULL) {
+        memcpy(word, *buffer, *length + 1U);
+    } else {
+        word[0] = '\0';
+    }
     if (token_push(tokens, word, 0) != 0) {
         free(word);
         return -1;
@@ -75,7 +87,7 @@ static int flush_word(struct TokenList *tokens, char **buffer, size_t *length, s
 }
 
 static int push_operator(struct TokenList *tokens, const char *op) {
-    char *text = strdup(op);
+    char *text = duplicate_string(op);
     if (text == NULL) {
         return -1;
     }
@@ -257,10 +269,11 @@ static int is_op(const struct Token *token, const char *op) {
 }
 
 static int add_arg(struct Command *command, const char *text) {
-    if (command->argc >= MAX_ARGS) {
+    /* argv[0] is the program name, so allow MAX_ARGS arguments after it. */
+    if (command->argc >= MAX_ARGS + 1U) {
         return -1;
     }
-    command->argv[command->argc] = strdup(text);
+    command->argv[command->argc] = duplicate_string(text);
     if (command->argv[command->argc] == NULL) {
         return -1;
     }
@@ -365,7 +378,7 @@ int parse_line(const char *line, struct Pipeline *pipeline, char *error, size_t 
                     free_pipeline(pipeline);
                     return -1;
                 }
-                current->input_file = strdup(filename);
+                current->input_file = duplicate_string(filename);
             } else {
                 if (current->output_file != NULL) {
                     set_error(error, error_size, "multiple output redirections are not supported");
@@ -373,7 +386,7 @@ int parse_line(const char *line, struct Pipeline *pipeline, char *error, size_t 
                     free_pipeline(pipeline);
                     return -1;
                 }
-                current->output_file = strdup(filename);
+                current->output_file = duplicate_string(filename);
                 current->append_output = is_op(token, ">>");
             }
             if ((is_op(token, "<") && current->input_file == NULL) ||
