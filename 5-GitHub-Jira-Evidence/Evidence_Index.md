@@ -10,4 +10,4 @@
 | Jira project/backlog/board, if required | Pending capture | screenshots/06_Jira_Project.png |
 
 Repository: https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell  
-GitHub Project: https://github.com/users/ShrikarDesai07/projects/5/views/1
+GitHub Project: https://github.com/orgs/SE-H1-SimpleShell/projects/2

@@ -131,7 +131,7 @@ Full shell scripting, variable expansion, globbing, command substitution, aliase
 - **Language:** C (C11)
 - **Target environment:** Linux / POSIX
 - **Team repository:** https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell
-- **GitHub Project board:** https://github.com/users/ShrikarDesai07/projects/5/views/1
+- **GitHub Project board:** https://github.com/orgs/SE-H1-SimpleShell/projects/2
 
 ## Mini-project submission folders
 
