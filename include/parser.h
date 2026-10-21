@@ -7,7 +7,8 @@
 #define MAX_PIPE_SEGMENTS 32
 
 struct Command {
-    char *argv[MAX_ARGS + 1];
+    /* Program name + up to MAX_ARGS arguments + NULL terminator. */
+    char *argv[MAX_ARGS + 2];
     size_t argc;
     char *input_file;
     char *output_file;
