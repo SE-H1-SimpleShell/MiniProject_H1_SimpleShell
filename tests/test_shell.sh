@@ -24,6 +24,29 @@ run_test() {
     fi
 }
 
+# Verify that a bad command line produces a diagnostic on stderr and that the
+# shell survives it and keeps executing following commands.
+run_recovery_test() {
+    local name=$1
+    local input=$2
+    local expected_stdout=$3
+    local expected_stderr=$4
+    local actual_stdout actual_stderr
+    actual_stdout=$(printf '%s' "$input" | "$SHELL_BIN" 2>"$TMP_DIR/stderr.txt")
+    actual_stderr=$(cat "$TMP_DIR/stderr.txt")
+    if [[ "$actual_stdout" == "$expected_stdout" && "$actual_stderr" == *"$expected_stderr"* ]]; then
+        printf 'PASS: %s\n' "$name"
+        PASS=$((PASS + 1))
+    else
+        printf 'FAIL: %s\n' "$name"
+        printf '  expected stdout: %q\n' "$expected_stdout"
+        printf '  actual stdout:   %q\n' "$actual_stdout"
+        printf '  expected stderr to contain: %q\n' "$expected_stderr"
+        printf '  actual stderr:   %q\n' "$actual_stderr"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
 # --- Functional tests ---
 
 # TC-03: Built-in echo
@@ -57,8 +80,9 @@ run_test "append redirection" "$input" $'output\nsecond'
 # TC-12: Pipeline execution
 run_test "pipeline" $'printf "a\\nb\\nc\\n" | wc -l\nexit\n' "3"
 
-# TC-14: Invalid command handling
-run_test "invalid command" $'definitely-not-a-command\nexit\n' ""
+# TC-14: Invalid command handling (diagnostic + prompt recovery)
+run_recovery_test "invalid command recovery" \
+    $'definitely-not-a-command\necho alive\nexit\n' "alive" "definitely-not-a-command:"
 
 # TC-04: Directory change (cd & pwd)
 actual=$(printf 'cd /tmp\npwd\nexit\n' | "$SHELL_BIN" 2>/dev/null)
@@ -69,12 +93,14 @@ else
 fi
 
 # TC-11: Syntax / malformed input error recovery
-actual=$(printf 'echo "unterminated\nexit\n' | "$SHELL_BIN" 2>/dev/null)
-if [[ -z "$actual" ]]; then
-    printf 'PASS: malformed input handling\n'; PASS=$((PASS + 1))
-else
-    printf 'FAIL: malformed input handling\n'; FAIL=$((FAIL + 1))
-fi
+run_recovery_test "unterminated double quote recovery" \
+    $'echo "unterminated\necho alive\nexit\n' "alive" "shell: syntax error:"
+run_recovery_test "unterminated single quote recovery" \
+    $'echo \'unterminated\necho alive\nexit\n' "alive" "shell: syntax error:"
+run_recovery_test "trailing backslash recovery" \
+    $'echo trailing\\\necho alive\nexit\n' "alive" "shell: syntax error:"
+run_recovery_test "dangling pipe recovery" \
+    $'echo hi |\necho alive\nexit\n' "alive" "shell: syntax error:"
 
 # TC-15: Inaccessible / missing input file recovery (previously manual)
 actual=$(printf 'cat < '"$TMP_DIR"'/nonexistent_missing.txt\necho alive\nexit\n' | "$SHELL_BIN" 2>/dev/null)

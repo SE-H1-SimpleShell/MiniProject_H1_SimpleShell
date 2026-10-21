@@ -39,17 +39,21 @@ Paste the complete terminal output below.
 
 The suite is expected to report:
 
-- **Parser unit tests** — 9 assertions, ending with `Parser tests: 0 failed`
+- **Parser unit tests** — 20 assertions, ending with `Parser tests: 0 failed`
   (basic argument parsing, double-quoted argument, pipeline parsing, redirection parsing, append
   redirection parsing, unterminated quote rejected, leading pipe rejected, trailing pipe rejected,
-  non-terminal background operator rejected)
-- **Shell integration tests** — 15 scenarios, ending with `Total: 15 passed, 0 failed`
+  non-terminal background operator rejected, single-quoted literal argument, single quotes do not
+  process escapes, backslash escapes a space, backslash escapes an operator, double-quoted embedded
+  quote, empty double-quoted argument, empty single-quoted argument, unterminated single quote
+  rejected, trailing backslash rejected, 128 arguments accepted, 129th argument rejected)
+- **Shell integration tests** — 18 scenarios, ending with `Total: 18 passed, 0 failed`
   (echo, quoted echo, escaped space, external command, help, input redirection, output redirection, append
-  redirection, pipeline, invalid command, `cd`, malformed input, missing input file recovery,
-  foreground process synchronization, background execution non-blocking)
+  redirection, pipeline, invalid command recovery, `cd`, unterminated double-quote recovery,
+  unterminated single-quote recovery, trailing-backslash recovery, dangling-pipe recovery,
+  missing input file recovery, foreground process synchronization, background execution non-blocking)
 - **ASan/UBSan** — no sanitizer diagnostics and no leaks
 
-Total expected: **24 checks, 0 failures**.
+Total expected: **38 checks, 0 failures**.
 
 If the real run differs from this, the difference must be explained here rather than the expectation
 being edited to match.
