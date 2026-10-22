@@ -68,6 +68,10 @@ static int flush_word(struct TokenList *tokens, char **buffer, size_t *length, s
        empty argument (for example, echo "" or echo ''). */
     char *word = malloc(*length + 1U);
     if (word == NULL) {
+        free(*buffer);
+        *buffer = NULL;
+        *length = 0U;
+        *capacity = 0U;
         return -1;
     }
     if (*buffer != NULL) {
@@ -77,6 +81,10 @@ static int flush_word(struct TokenList *tokens, char **buffer, size_t *length, s
     }
     if (token_push(tokens, word, 0) != 0) {
         free(word);
+        free(*buffer);
+        *buffer = NULL;
+        *length = 0U;
+        *capacity = 0U;
         return -1;
     }
     free(*buffer);
@@ -210,6 +218,7 @@ static int lex(const char *line, struct TokenList *tokens, char *error, size_t e
             char op[2] = {(char)c, '\0'};
             if (push_operator(tokens, op) != 0) {
                 set_error(error, error_size, "memory allocation failure");
+                free(buffer);
                 return -1;
             }
             ++i;
@@ -228,12 +237,14 @@ static int lex(const char *line, struct TokenList *tokens, char *error, size_t e
             if (line[i + 1U] == '>') {
                 if (push_operator(tokens, ">>") != 0) {
                     set_error(error, error_size, "memory allocation failure");
+                    free(buffer);
                     return -1;
                 }
                 i += 2U;
             } else {
                 if (push_operator(tokens, ">") != 0) {
                     set_error(error, error_size, "memory allocation failure");
+                    free(buffer);
                     return -1;
                 }
                 ++i;

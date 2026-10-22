@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 #include "shell.h"
 
+#include "builtins.h"
 #include "executor.h"
 #include "parser.h"
 
@@ -30,6 +31,10 @@ int shell_loop(void) {
                 fputc('\n', stderr);
                 break;
             }
+            if (errno == EINTR) {
+                clearerr(stdin);
+                continue;
+            }
             fprintf(stderr, "shell: input error: %s\n", strerror(errno));
             break;
         }
@@ -50,7 +55,7 @@ int shell_loop(void) {
         }
 
         int result = execute_pipeline(&pipeline);
-        if (result == 1000) {
+        if (result == SHELL_STATUS_EXIT) {
             running = 0;
         }
         free_pipeline(&pipeline);
