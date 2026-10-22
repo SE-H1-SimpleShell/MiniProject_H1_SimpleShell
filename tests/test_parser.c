@@ -104,6 +104,16 @@ int main(void) {
     check(parse_line("echo trailing\\", &p, error, sizeof(error)) != 0,
           "trailing backslash rejected");
 
+    check(parse_line("", &p, error, sizeof(error)) == 0 &&
+          p.count == 0,
+          "empty line ignored");
+    free_pipeline(&p);
+
+    check(parse_line("   \t  ", &p, error, sizeof(error)) == 0 &&
+          p.count == 0,
+          "whitespace-only line ignored");
+    free_pipeline(&p);
+
     char many[1024];
     size_t used = (size_t)snprintf(many, sizeof(many), "cmd");
     for (int i = 0; i < 128; ++i) {
