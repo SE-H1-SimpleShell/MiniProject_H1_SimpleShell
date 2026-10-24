@@ -94,9 +94,9 @@ int run_builtin(const struct Command *cmd, int in_child) {
     }
     if (strcmp(cmd->argv[0], "exit") == 0) {
         if (in_child) {
-            _exit(0);
+            _Exit(0);
         }
-        return 1000; /* Special value handled by executor. */
+        return SHELL_STATUS_EXIT; /* Special value handled by executor. */
     }
     return 127;
 }

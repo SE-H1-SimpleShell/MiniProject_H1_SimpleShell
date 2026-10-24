@@ -85,7 +85,7 @@ static int run_single_parent_builtin(const struct Command *cmd) {
         (void)dup2(saved_stdout, STDOUT_FILENO);
         close(saved_stdout);
     }
-    return result == 1000 ? 1000 : result;
+    return result == SHELL_STATUS_EXIT ? SHELL_STATUS_EXIT : result;
 }
 
 static void child_exec(const struct Command *cmd, int in_fd, int out_fd) {
@@ -106,7 +106,7 @@ static void child_exec(const struct Command *cmd, int in_fd, int out_fd) {
 
     if (is_builtin(cmd->argv[0])) {
         int rc = run_builtin(cmd, 1);
-        _exit(rc == 1000 ? 0 : rc);
+        _exit(rc == SHELL_STATUS_EXIT ? 0 : rc);
     }
 
     execvp(cmd->argv[0], cmd->argv);
