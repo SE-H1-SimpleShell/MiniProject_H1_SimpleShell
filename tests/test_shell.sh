@@ -47,7 +47,65 @@ run_recovery_test() {
     fi
 }
 
+# Verify termination status, stdout, and clean exit code.
+run_status_test() {
+    local name=$1
+    local input=$2
+    local expected_exit=$3
+    local expected_stdout=${4:-}
+    local actual_stdout
+    local actual_exit=0
+    actual_stdout=$(printf '%s' "$input" | "$SHELL_BIN" 2>/dev/null) || actual_exit=$?
+    if [[ "$actual_exit" -eq "$expected_exit" && "$actual_stdout" == "$expected_stdout" ]]; then
+        printf 'PASS: %s\n' "$name"
+        PASS=$((PASS + 1))
+    else
+        printf 'FAIL: %s\n' "$name"
+        printf '  expected exit: %d, stdout: %q\n' "$expected_exit" "$expected_stdout"
+        printf '  actual exit:   %d, stdout: %q\n' "$actual_exit" "$actual_stdout"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
+# Verify that prompt is emitted to stderr and command stdout remains clean.
+run_prompt_test() {
+    local name=$1
+    local input=$2
+    local expected_prompt=$3
+    local actual_stdout actual_stderr
+    actual_stdout=$(printf '%s' "$input" | "$SHELL_BIN" 2>"$TMP_DIR/stderr.txt") || true
+    actual_stderr=$(cat "$TMP_DIR/stderr.txt")
+    if [[ "$actual_stderr" == *"$expected_prompt"* && "$actual_stdout" != *"$expected_prompt"* ]]; then
+        printf 'PASS: %s\n' "$name"
+        PASS=$((PASS + 1))
+    else
+        printf 'FAIL: %s\n' "$name"
+        printf '  expected stderr to contain: %q\n' "$expected_prompt"
+        printf '  actual stderr:              %q\n' "$actual_stderr"
+        printf '  actual stdout:              %q\n' "$actual_stdout"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
 # --- Functional tests ---
+
+# TC-01: Clean termination with exit
+run_status_test "clean termination with exit" $'exit\n' 0 ""
+
+# TC-10: Clean termination on EOF without exit
+run_status_test "clean termination on EOF" "" 0 ""
+run_status_test "clean termination on EOF after command" $'echo eof-test\n' 0 "eof-test"
+
+# Prompt output on standard error without polluting standard output
+run_prompt_test "prompt on stderr and clean stdout" $'echo prompt-check\nexit\n' "simple-shell$ "
+
+# Blank and whitespace-only lines are ignored without executing commands
+run_status_test "blank and whitespace-only input" $'\n   \n\t  \n' 0 ""
+
+# Continued command processing after blank lines
+run_status_test "continued command processing after blank lines" \
+    $'\n   \necho resumed\n   \n\techo running\nexit\n' 0 $'resumed\nrunning'
+
 
 # TC-03: Built-in echo
 run_test "echo builtin" $'echo hello\nexit\n' "hello"
@@ -101,6 +159,8 @@ run_recovery_test "trailing backslash recovery" \
     $'echo trailing\\\necho alive\nexit\n' "alive" "shell: syntax error:"
 run_recovery_test "dangling pipe recovery" \
     $'echo hi |\necho alive\nexit\n' "alive" "shell: syntax error:"
+run_recovery_test "recovery across blank lines and malformed syntax" \
+    $'\n  \necho "unterminated\n\n  \necho recovered\nexit\n' "recovered" "shell: syntax error:"
 
 # TC-15: Inaccessible / missing input file recovery (previously manual)
 actual=$(printf 'cat < '"$TMP_DIR"'/nonexistent_missing.txt\necho alive\nexit\n' | "$SHELL_BIN" 2>/dev/null)

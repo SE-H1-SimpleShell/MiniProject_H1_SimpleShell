@@ -37,4 +37,4 @@ asan-test: clean
 	$(MAKE) CFLAGS='$(CFLAGS) -fsanitize=address,undefined -fno-omit-frame-pointer' LDFLAGS='-fsanitize=address,undefined' test
 
 clean:
-	rm -rf $(BUILD) $(TARGET)
+	rm -rf $(BUILD) $(TARGET) $(TARGET).exe
