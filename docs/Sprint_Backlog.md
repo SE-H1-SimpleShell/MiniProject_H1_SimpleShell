@@ -31,7 +31,7 @@
 | [#5](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/5) | [S1-05] External Command Execution via Fork/Execvp & Foreground Waiting | Core Shell | FR-02, FR-09, NFR-07 | 5 | @Aqual456 | Ready |
 | [#6](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/6) | [S1-06] Parser Memory Lifecycle, File Descriptor Hygiene & Teardown | Core Shell | FR-10, NFR-03 | 3 | @Aqual456 | Ready |
 | [#7](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/7) | [S1-07] Built-in Commands Implementation: cd, pwd, echo, help, exit | Core Shell | FR-03 | 5 | @sudeeksh02 | Ready |
-| [#8](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/8) | [S1-08] GitHub Actions CI Automation for PRs, Commits & Sanitizer Checks | Testing & Quality | NFR-05, NFR-06 | 3 | @sudeeksh02 | Ready |
+| [#8](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/8) | [S1-08] GitHub Actions CI Automation for PRs, Commits & Sanitizer Checks | Testing & Quality | NFR-05, NFR-06 | 3 | @sudeeksh02 | Completed |
 | [#9](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/9) | [S1-09] Sprint 1 Validation, Fresh Clone Verification & 1-Minute Demo Video | Documentation & Release | NFR-08, Deliverable | 2 | @ShrikarDesai07 | Ready |
 
 **Sprint 1 Velocity:** 32 Story Points
