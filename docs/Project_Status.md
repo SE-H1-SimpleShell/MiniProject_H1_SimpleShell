@@ -24,15 +24,13 @@ Deliverable-to-file mapping is in `docs/Phase_1_Checklist.md` Section 1.
 
 - Modular C implementation in `src/` with headers in `include/`.
 - Automated parser unit tests and shell integration tests in `tests/`.
-- GitHub Actions CI workflow running `make test` on every push and pull request.
+- GitHub Actions CI workflow running `make`, `make test`, and `make asan-test` with timeouts on every push and pull request (Refs Issue #8).
 - Jira backlog seed in `docs/Jira_Backlog.md`.
 
 ## Validation state
 
-- No recorded validation run. See `docs/Test_Report.md` Section 1.
-- Automated coverage gaps are recorded in `docs/RTM.md` Section 4 and `docs/Test_Cases.md` Section 4.
-  TC-13 (background) and TC-16 (foreground synchronisation) are the only coverage for FR-07 and
-  FR-09 and are not yet automated.
+- Validation run recorded: 70 total checks (36 parser assertions + 34 shell integration tests), 0 failures, 0 sanitizer diagnostics under AddressSanitizer and UndefinedBehaviorSanitizer (see `docs/Test_Report.md` and `7-Software-Testing/Test_Execution_Report.md`).
+- Automated regression suite covers unit tests, built-ins, pipelines, redirections, error recovery, foreground synchronization, and background execution.
 
 ## Phase 2 (Agile Development stage) status
 
@@ -48,7 +46,6 @@ Deliverable-to-file mapping is in `docs/Phase_1_Checklist.md` Section 1.
 
 ## Open items
 
-1. Run `make test` and `make asan-test` on the target Linux system and paste the output into
-   `Test_Report.md` Sections 5.1–5.3.
+1. Validation runs for `make test` and `make asan-test` recorded in `Test_Report.md` and automated in CI workflow.
 2. Link the published GitHub Issues into the GitHub Project board (Projects v2) under the repo.
 3. Conduct Sprint dry run during Oct 12–16 before starting Sprint 1 development on Oct 19.
