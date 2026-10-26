@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   build-and-test:
-    name: Build, Test & Sanitizers (Ubuntu GCC C11)
+    name: build-and-test
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
