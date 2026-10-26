@@ -18,6 +18,7 @@ int main(void) {
     struct Pipeline p;
     char error[256];
 
+    /* --- Basic & Quote Parsing Tests --- */
     check(parse_line("echo hello world", &p, error, sizeof(error)) == 0 &&
           p.count == 1 && p.commands[0].argc == 3 &&
           strcmp(p.commands[0].argv[1], "hello") == 0 &&
@@ -104,6 +105,17 @@ int main(void) {
     check(parse_line("echo trailing\\", &p, error, sizeof(error)) != 0,
           "trailing backslash rejected");
 
+    check(parse_line("", &p, error, sizeof(error)) == 0 &&
+          p.count == 0,
+          "empty line ignored");
+    free_pipeline(&p);
+
+    check(parse_line("   \t  ", &p, error, sizeof(error)) == 0 &&
+          p.count == 0,
+          "whitespace-only line ignored");
+    free_pipeline(&p);
+
+    /* --- Argument Limit Checks --- */
     char many[1024];
     size_t used = (size_t)snprintf(many, sizeof(many), "cmd");
     for (int i = 0; i < 128; ++i) {
@@ -117,6 +129,60 @@ int main(void) {
     used += (size_t)snprintf(many + used, sizeof(many) - used, " a");
     check(parse_line(many, &p, error, sizeof(error)) != 0,
           "129th argument rejected");
+
+    /* --- Extended Edge Case & Sanitizer Validation --- */
+    check(parse_line(NULL, &p, error, sizeof(error)) != 0,
+          "NULL line parameter safely rejected");
+    check(parse_line("echo test", NULL, error, sizeof(error)) != 0,
+          "NULL pipeline parameter safely rejected");
+
+    check(parse_line("cat < in1.txt < in2.txt", &p, error, sizeof(error)) != 0,
+          "multiple input redirections rejected");
+    check(parse_line("echo a > out1.txt > out2.txt", &p, error, sizeof(error)) != 0,
+          "multiple output redirections rejected");
+    check(parse_line("echo a >> out1.txt >> out2.txt", &p, error, sizeof(error)) != 0,
+          "multiple append redirections rejected");
+    check(parse_line("cmd & &", &p, error, sizeof(error)) != 0,
+          "multiple background operators rejected");
+
+    check(parse_line("cat <", &p, error, sizeof(error)) != 0,
+          "dangling input redirection rejected");
+    check(parse_line("echo hi >", &p, error, sizeof(error)) != 0,
+          "dangling output redirection rejected");
+    check(parse_line("echo hi >>", &p, error, sizeof(error)) != 0,
+          "dangling append redirection rejected");
+
+    check(parse_line("cmd1 | | cmd2", &p, error, sizeof(error)) != 0,
+          "consecutive pipes rejected");
+    check(parse_line("cmd1 || cmd2", &p, error, sizeof(error)) != 0,
+          "double pipe operator rejected");
+
+    check(parse_line("echo a | grep a | wc -l", &p, error, sizeof(error)) == 0 &&
+          p.count == 3 &&
+          strcmp(p.commands[0].argv[0], "echo") == 0 &&
+          strcmp(p.commands[1].argv[0], "grep") == 0 &&
+          strcmp(p.commands[2].argv[0], "wc") == 0,
+          "three-stage pipeline parsed successfully");
+    free_pipeline(&p);
+
+    check(parse_line("echo \"it's fine\" '\"hello\"'", &p, error, sizeof(error)) == 0 &&
+          p.commands[0].argc == 3 &&
+          strcmp(p.commands[0].argv[1], "it's fine") == 0 &&
+          strcmp(p.commands[0].argv[2], "\"hello\"") == 0,
+          "mixed quote embedding parsed correctly");
+    free_pipeline(&p);
+
+    /* Stress test memory lifecycle for AddressSanitizer leak detection */
+    int lifecycle_ok = 1;
+    for (int cycle = 0; cycle < 50; ++cycle) {
+        if (parse_line("cmd arg1 \"arg 2\" 'arg 3' < in.txt > out.txt | stage2 &",
+                       &p, error, sizeof(error)) != 0 || p.count != 2) {
+            lifecycle_ok = 0;
+            break;
+        }
+        free_pipeline(&p);
+    }
+    check(lifecycle_ok, "repeated parse-and-free lifecycle leak-free under ASan");
 
     printf("\nParser tests: %d failed\n", failures);
     return failures == 0 ? 0 : 1;

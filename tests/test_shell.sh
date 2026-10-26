@@ -47,10 +47,70 @@ run_recovery_test() {
     fi
 }
 
+# Verify termination status, stdout, and clean exit code.
+run_status_test() {
+    local name=$1
+    local input=$2
+    local expected_exit=$3
+    local expected_stdout=${4:-}
+    local actual_stdout
+    local actual_exit=0
+    actual_stdout=$(printf '%s' "$input" | "$SHELL_BIN" 2>/dev/null) || actual_exit=$?
+    if [[ "$actual_exit" -eq "$expected_exit" && "$actual_stdout" == "$expected_stdout" ]]; then
+        printf 'PASS: %s\n' "$name"
+        PASS=$((PASS + 1))
+    else
+        printf 'FAIL: %s\n' "$name"
+        printf '  expected exit: %d, stdout: %q\n' "$expected_exit" "$expected_stdout"
+        printf '  actual exit:   %d, stdout: %q\n' "$actual_exit" "$actual_stdout"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
+# Verify that prompt is emitted to stderr and command stdout remains clean.
+run_prompt_test() {
+    local name=$1
+    local input=$2
+    local expected_prompt=$3
+    local actual_stdout actual_stderr
+    actual_stdout=$(printf '%s' "$input" | "$SHELL_BIN" 2>"$TMP_DIR/stderr.txt") || true
+    actual_stderr=$(cat "$TMP_DIR/stderr.txt")
+    if [[ "$actual_stderr" == *"$expected_prompt"* && "$actual_stdout" != *"$expected_prompt"* ]]; then
+        printf 'PASS: %s\n' "$name"
+        PASS=$((PASS + 1))
+    else
+        printf 'FAIL: %s\n' "$name"
+        printf '  expected stderr to contain: %q\n' "$expected_prompt"
+        printf '  actual stderr:              %q\n' "$actual_stderr"
+        printf '  actual stdout:              %q\n' "$actual_stdout"
+        FAIL=$((FAIL + 1))
+    fi
+}
+
 # --- Functional tests ---
+
+# TC-01: Clean termination with exit
+run_status_test "clean termination with exit" $'exit\n' 0 ""
+
+# TC-10: Clean termination on EOF without exit
+run_status_test "clean termination on EOF" "" 0 ""
+run_status_test "clean termination on EOF after command" $'echo eof-test\n' 0 "eof-test"
+
+# Prompt output on standard error without polluting standard output
+run_prompt_test "prompt on stderr and clean stdout" $'echo prompt-check\nexit\n' "simple-shell$ "
+
+# Blank and whitespace-only lines are ignored without executing commands
+run_status_test "blank and whitespace-only input" $'\n   \n\t  \n' 0 ""
+
+# Continued command processing after blank lines
+run_status_test "continued command processing after blank lines" \
+    $'\n   \necho resumed\n   \n\techo running\nexit\n' 0 $'resumed\nrunning'
 
 # TC-03: Built-in echo
 run_test "echo builtin" $'echo hello\nexit\n' "hello"
+
+# Multi-argument echo
+run_test "echo multiple arguments" $'echo one two three four five\nexit\n' "one two three four five"
 
 # TC-05: Quoted argument
 run_test "quoted echo" $'echo "hello world"\nexit\n' "hello world"
@@ -60,6 +120,7 @@ run_test "escaped space" $'echo hello\\ world\nexit\n' "hello world"
 
 # TC-02: External command execution
 run_test "external command" $'printf hi\nexit\n' "hi"
+run_test "external command with formatted arguments" $'printf "%s %s" foo bar\nexit\n' "foo bar"
 
 # TC-18: Built-in help
 run_test "help builtin" $'help\nexit\n' $'Simple Shell - supported commands:\n  cd [DIR]       Change current directory\n  pwd            Print current directory\n  echo [TEXT...] Print text\n  help           Show this help message\n  exit           Exit the shell\n\nExternal commands, pipes (|), redirection (<, >, >>),\nand background execution (&) are supported.'
@@ -77,8 +138,18 @@ run_test "output redirection" "$input" "output"
 input=$'echo second >> '"$TMP_DIR"$'/out.txt\ncat '"$TMP_DIR"$'/out.txt\nexit\n'
 run_test "append redirection" "$input" $'output\nsecond'
 
+# Built-in command redirection to file
+input=$'help > '"$TMP_DIR"$'/help.txt\ncat '"$TMP_DIR"$'/help.txt\nexit\n'
+run_test "built-in output redirection to file" "$input" $'Simple Shell - supported commands:\n  cd [DIR]       Change current directory\n  pwd            Print current directory\n  echo [TEXT...] Print text\n  help           Show this help message\n  exit           Exit the shell\n\nExternal commands, pipes (|), redirection (<, >, >>),\nand background execution (&) are supported.'
+
 # TC-12: Pipeline execution
 run_test "pipeline" $'printf "a\\nb\\nc\\n" | wc -l\nexit\n' "3"
+
+# Multi-stage pipeline execution (3 stages)
+run_test "three-stage pipeline" $'printf "alpha\\nbeta\\ngamma\\n" | grep -v beta | wc -l\nexit\n' "2"
+
+# Pipeline throughput under AddressSanitizer
+run_test "empty stream pipeline" $'cat /dev/null | wc -c\nexit\n' "0"
 
 # TC-14: Invalid command handling (diagnostic + prompt recovery)
 run_recovery_test "invalid command recovery" \
@@ -92,6 +163,14 @@ else
     printf 'FAIL: cd builtin (actual=%q)\n' "$actual"; FAIL=$((FAIL + 1))
 fi
 
+# Directory change with cd - (OLDPWD)
+actual=$(printf 'cd /tmp\ncd /var\ncd -\nexit\n' | "$SHELL_BIN" 2>/dev/null)
+if [[ "$actual" == *"/tmp"* ]]; then
+    printf 'PASS: cd - toggle to OLDPWD\n'; PASS=$((PASS + 1))
+else
+    printf 'FAIL: cd - toggle to OLDPWD (actual=%q)\n' "$actual"; FAIL=$((FAIL + 1))
+fi
+
 # TC-11: Syntax / malformed input error recovery
 run_recovery_test "unterminated double quote recovery" \
     $'echo "unterminated\necho alive\nexit\n' "alive" "shell: syntax error:"
@@ -101,6 +180,14 @@ run_recovery_test "trailing backslash recovery" \
     $'echo trailing\\\necho alive\nexit\n' "alive" "shell: syntax error:"
 run_recovery_test "dangling pipe recovery" \
     $'echo hi |\necho alive\nexit\n' "alive" "shell: syntax error:"
+run_recovery_test "leading pipe recovery" \
+    $'| echo hi\necho alive\nexit\n' "alive" "shell: syntax error:"
+run_recovery_test "dangling redirection recovery" \
+    $'cat <\necho alive\nexit\n' "alive" "shell: syntax error:"
+run_recovery_test "redirection without command recovery" \
+    $'< in.txt\necho alive\nexit\n' "alive" "shell: syntax error:"
+run_recovery_test "recovery across blank lines and malformed syntax" \
+    $'\n  \necho "unterminated\n\n  \necho recovered\nexit\n' "recovered" "shell: syntax error:"
 
 # TC-15: Inaccessible / missing input file recovery (previously manual)
 actual=$(printf 'cat < '"$TMP_DIR"'/nonexistent_missing.txt\necho alive\nexit\n' | "$SHELL_BIN" 2>/dev/null)
