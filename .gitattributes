@@ -1,0 +1,14 @@
+# Git Attributes for Line Ending Normalization across OS environments
+# Auto-detect text files and normalize CRLF to LF in git repository
+* text=auto
+
+# Source code and scripts must always use LF
+*.c text eol=lf
+*.h text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.md text eol=lf
+Makefile text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
