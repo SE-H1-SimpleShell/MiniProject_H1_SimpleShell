@@ -6,26 +6,38 @@
 #include <stdlib.h>
 #include <string.h>
 
+/**
+ * @brief Internal token representation produced by the lexer.
+ */
 struct Token {
-    char *text;
-    int operator_token;
+    char *text;          /**< Dynamically allocated null-terminated token string */
+    int operator_token;  /**< Flag: 1 if token is a shell operator (| < > >> &), 0 if word */
 };
 
+/**
+ * @brief Dynamic array of lexical tokens.
+ */
 struct TokenList {
-    struct Token *items;
-    size_t count;
-    size_t capacity;
+    struct Token *items; /**< Dynamically allocated buffer of Token entries */
+    size_t count;        /**< Current count of valid tokens stored */
+    size_t capacity;     /**< Total allocated capacity */
 };
 
+/**
+ * @brief Helper to format error diagnostics safely within the allocated buffer.
+ */
 static void set_error(char *error, size_t error_size, const char *message) {
-    if (error != NULL && error_size > 0) {
+    if (error != NULL && error_size > 0U) {
         (void)snprintf(error, error_size, "%s", message);
     }
 }
 
+/**
+ * @brief Append a token to the TokenList, resizing geometrically if necessary.
+ */
 static int token_push(struct TokenList *list, char *text, int operator_token) {
     if (list->count == list->capacity) {
-        size_t new_capacity = (list->capacity == 0U) ? 16U : list->capacity * 2U;
+        size_t new_capacity = (list->capacity == 0U) ? 16U : (list->capacity * 2U);
         struct Token *new_items = realloc(list->items, new_capacity * sizeof(*new_items));
         if (new_items == NULL) {
             return -1;
@@ -39,7 +51,13 @@ static int token_push(struct TokenList *list, char *text, int operator_token) {
     return 0;
 }
 
+/**
+ * @brief Duplicate a null-terminated string onto the heap using C11 standard functions.
+ */
 static char *duplicate_string(const char *text) {
+    if (text == NULL) {
+        return NULL;
+    }
     size_t length = strlen(text) + 1U;
     char *copy = malloc(length);
     if (copy != NULL) {
@@ -48,6 +66,9 @@ static char *duplicate_string(const char *text) {
     return copy;
 }
 
+/**
+ * @brief Append a single character to a dynamically expanding string buffer.
+ */
 static int buffer_append(char **buffer, size_t *length, size_t *capacity, char c) {
     if (*length + 1U >= *capacity) {
         size_t new_capacity = (*capacity == 0U) ? 32U : (*capacity * 2U);
@@ -63,9 +84,12 @@ static int buffer_append(char **buffer, size_t *length, size_t *capacity, char c
     return 0;
 }
 
+/**
+ * @brief Finalize and push the accumulated character buffer as a word token.
+ */
 static int flush_word(struct TokenList *tokens, char **buffer, size_t *length, size_t *capacity) {
-    /* Only called once a token has started, so an empty buffer is a valid
-       empty argument (for example, echo "" or echo ''). */
+    /* Only called once a token has started, so an empty buffer represents a valid
+       empty argument (such as echo "" or echo ''). */
     char *word = malloc(*length + 1U);
     if (word == NULL) {
         free(*buffer);
@@ -94,6 +118,9 @@ static int flush_word(struct TokenList *tokens, char **buffer, size_t *length, s
     return 0;
 }
 
+/**
+ * @brief Push a shell operator string (| < > >> &) as an operator token.
+ */
 static int push_operator(struct TokenList *tokens, const char *op) {
     char *text = duplicate_string(op);
     if (text == NULL) {
@@ -106,8 +133,14 @@ static int push_operator(struct TokenList *tokens, const char *op) {
     return 0;
 }
 
+/**
+ * @brief Release all resources allocated in a TokenList.
+ */
 static void free_tokens(struct TokenList *tokens) {
-    for (size_t i = 0; i < tokens->count; ++i) {
+    if (tokens == NULL) {
+        return;
+    }
+    for (size_t i = 0U; i < tokens->count; ++i) {
         free(tokens->items[i].text);
     }
     free(tokens->items);
@@ -116,6 +149,15 @@ static void free_tokens(struct TokenList *tokens) {
     tokens->capacity = 0U;
 }
 
+/**
+ * @brief Perform lexical analysis on an input string to generate a TokenList.
+ *
+ * Implements finite-state lexical processing supporting:
+ *  - Single quotes ('...'): Preserves literal characters exactly without escape interpretation.
+ *  - Double quotes ("..."): Allows embedded escaped quotes (\") and backslashes (\\).
+ *  - Unquoted backslash (\x): Escapes whitespace, operators, and literal characters.
+ *  - Operators: Single-character (| < > &) and multi-character (>>) tokens.
+ */
 static int lex(const char *line, struct TokenList *tokens, char *error, size_t error_size) {
     size_t i = 0U;
     char quote = '\0';
@@ -136,9 +178,9 @@ static int lex(const char *line, struct TokenList *tokens, char *error, size_t e
             }
             if (quote == '"' && c == '\\' && line[i + 1U] != '\0') {
                 unsigned char next = (unsigned char)line[i + 1U];
-                /* Within double quotes, a backslash preserves special shell
-                   characters; for other characters keep the backslash so
-                   programs such as printf can interpret sequences like \\n. */
+                /* Within double quotes, backslash preserves special shell characters;
+                   for other characters retain the backslash so utilities (e.g. printf)
+                   can interpret sequences such as \n. */
                 if (next == '"' || next == '\\' || next == '$' || next == '`' || next == '\n') {
                     ++i;
                     if (buffer_append(&buffer, &length, &capacity, line[i]) != 0) {
@@ -275,12 +317,18 @@ static int lex(const char *line, struct TokenList *tokens, char *error, size_t e
     return 0;
 }
 
+/**
+ * @brief Check if a token matches the specified operator string.
+ */
 static int is_op(const struct Token *token, const char *op) {
-    return token->operator_token != 0 && strcmp(token->text, op) == 0;
+    return (token->operator_token != 0 && strcmp(token->text, op) == 0);
 }
 
+/**
+ * @brief Add an argument to a Command structure with bounds validation.
+ */
 static int add_arg(struct Command *command, const char *text) {
-    /* argv[0] is the program name, so allow MAX_ARGS arguments after it. */
+    /* argv[0] is program name; allow up to MAX_ARGS arguments following it */
     if (command->argc >= MAX_ARGS + 1U) {
         return -1;
     }
@@ -293,6 +341,9 @@ static int add_arg(struct Command *command, const char *text) {
     return 0;
 }
 
+/**
+ * @brief Free all dynamic memory associated with a Pipeline.
+ */
 void free_pipeline(struct Pipeline *pipeline) {
     if (pipeline == NULL) {
         return;
@@ -314,6 +365,9 @@ void free_pipeline(struct Pipeline *pipeline) {
     pipeline->background = 0;
 }
 
+/**
+ * @brief Parse a raw command-line string into a structured Pipeline.
+ */
 int parse_line(const char *line, struct Pipeline *pipeline, char *error, size_t error_size) {
     if (pipeline == NULL || line == NULL) {
         set_error(error, error_size, "invalid parser arguments");
