@@ -68,17 +68,21 @@ int shell_loop(void) {
             continue;
         }
 
-        /* Blank or whitespace-only lines require no execution */
+        /* Blank or whitespace only lines require no execution
+         {continue execution without interruption}*/
+         
         if (pipeline.count == 0U) {
             free_pipeline(&pipeline);
             continue;
         }
+
 
         /* Execute pipeline commands */
         int result = execute_pipeline(&pipeline);
         if (result == SHELL_STATUS_EXIT) {
             running = 0;
         }
+
 
         /* Release all memory allocated for this command cycle */
         free_pipeline(&pipeline);
