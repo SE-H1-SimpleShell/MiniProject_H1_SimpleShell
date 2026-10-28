@@ -142,6 +142,16 @@ int main(void) {
           "multiple output redirections rejected");
     check(parse_line("echo a >> out1.txt >> out2.txt", &p, error, sizeof(error)) != 0,
           "multiple append redirections rejected");
+    check(parse_line("echo a > out1.txt >> out2.txt", &p, error, sizeof(error)) != 0,
+          "overwrite followed by append redirection rejected");
+    check(parse_line("echo a >> out1.txt > out2.txt", &p, error, sizeof(error)) != 0,
+          "append followed by overwrite redirection rejected");
+    check(parse_line("cat > out.txt < in.txt", &p, error, sizeof(error)) == 0 &&
+          strcmp(p.commands[0].input_file, "in.txt") == 0 &&
+          strcmp(p.commands[0].output_file, "out.txt") == 0 &&
+          p.commands[0].append_output == 0,
+          "reversed order redirection (output then input) parsed correctly");
+    free_pipeline(&p);
     check(parse_line("cmd & &", &p, error, sizeof(error)) != 0,
           "multiple background operators rejected");
 

@@ -127,20 +127,65 @@ run_test "help builtin" $'help\nexit\n' $'Simple Shell - supported commands:\n  
 
 # TC-07: Input redirection
 printf 'redirection-input\n' > "$TMP_DIR/in.txt"
-input=$'cat < '"$TMP_DIR"$'/in.txt\nexit\n'
+input=$(printf 'cat < %s/in.txt\nexit\n' "$TMP_DIR")
 run_test "input redirection" "$input" "redirection-input"
 
-# TC-08: Output overwrite
-input=$'echo output > '"$TMP_DIR"$'/out.txt\ncat '"$TMP_DIR"$'/out.txt\nexit\n'
+# External command combined input and output redirection
+printf 'combined-in-out\n' > "$TMP_DIR/in_both.txt"
+input=$(printf 'cat < %s/in_both.txt > %s/out_both.txt\ncat %s/out_both.txt\nexit\n' "$TMP_DIR" "$TMP_DIR" "$TMP_DIR")
+run_test "combined input and output redirection" "$input" "combined-in-out"
+
+# TC-08: Output overwrite (built-in)
+input=$(printf 'echo output > %s/out.txt\ncat %s/out.txt\nexit\n' "$TMP_DIR" "$TMP_DIR")
 run_test "output redirection" "$input" "output"
 
-# TC-09: Output append
-input=$'echo second >> '"$TMP_DIR"$'/out.txt\ncat '"$TMP_DIR"$'/out.txt\nexit\n'
+# Output overwrite (external command)
+input=$(printf 'printf "external-out\\n" > %s/ext_out.txt\ncat %s/ext_out.txt\nexit\n' "$TMP_DIR" "$TMP_DIR")
+run_test "external command output redirection" "$input" "external-out"
+
+# Truncation: overwrite pre-existing longer content with shorter content (built-in)
+printf 'Initial very long line of text that should be completely truncated\n' > "$TMP_DIR/trunc.txt"
+input=$(printf 'echo short > %s/trunc.txt\ncat %s/trunc.txt\nexit\n' "$TMP_DIR" "$TMP_DIR")
+run_test "built-in output redirection truncates existing file" "$input" "short"
+
+# Truncation: overwrite pre-existing longer content with shorter content (external command)
+printf 'Initial very long line of text for external truncation verification\n' > "$TMP_DIR/trunc_ext.txt"
+input=$(printf 'printf "shorter\\n" > %s/trunc_ext.txt\ncat %s/trunc_ext.txt\nexit\n' "$TMP_DIR" "$TMP_DIR")
+run_test "external command output redirection truncates existing file" "$input" "shorter"
+
+# TC-09: Output append (built-in)
+input=$(printf 'echo second >> %s/out.txt\ncat %s/out.txt\nexit\n' "$TMP_DIR" "$TMP_DIR")
 run_test "append redirection" "$input" $'output\nsecond'
 
+# Output append (external command)
+printf 'line1\n' > "$TMP_DIR/ext_app.txt"
+input=$(printf 'printf "line2\\n" >> %s/ext_app.txt\ncat %s/ext_app.txt\nexit\n' "$TMP_DIR" "$TMP_DIR")
+run_test "external command append redirection" "$input" $'line1\nline2'
+
+# Redirection isolation: verify redirected output does not leak to shell standard output
+input=$(printf 'echo hidden > %s/silent_builtin.txt\nexit\n' "$TMP_DIR")
+run_test "built-in output redirection emits no stdout" "$input" ""
+input=$(printf 'printf hidden > %s/silent_ext.txt\nexit\n' "$TMP_DIR")
+run_test "external output redirection emits no stdout" "$input" ""
+
+# Standard output restoration for subsequent commands
+input=$(printf 'echo to_file > %s/f1.txt\necho normal-stdout\nexit\n' "$TMP_DIR")
+run_test "subsequent command stdout restored after builtin redirection" "$input" "normal-stdout"
+input=$(printf 'printf to_file > %s/f2.txt\nprintf normal-stdout\nexit\n' "$TMP_DIR")
+run_test "subsequent command stdout restored after external redirection" "$input" "normal-stdout"
+
 # Built-in command redirection to file
-input=$'help > '"$TMP_DIR"$'/help.txt\ncat '"$TMP_DIR"$'/help.txt\nexit\n'
+input=$(printf 'help > %s/help.txt\ncat %s/help.txt\nexit\n' "$TMP_DIR" "$TMP_DIR")
 run_test "built-in output redirection to file" "$input" $'Simple Shell - supported commands:\n  cd [DIR]       Change current directory\n  pwd            Print current directory\n  echo [TEXT...] Print text\n  help           Show this help message\n  exit           Exit the shell\n\nExternal commands, pipes (|), redirection (<, >, >>),\nand background execution (&) are supported.'
+
+# Stress test: repeated redirections to verify file descriptor hygiene (no leak/exhaustion)
+stress_input=""
+for i in $(seq 1 50); do
+    stress_input+="echo val$i > $TMP_DIR/stress.txt"$'\n'
+    stress_input+="cat < $TMP_DIR/stress.txt >> $TMP_DIR/stress_acc.txt"$'\n'
+done
+stress_input+="echo stress-complete"$'\n'"exit"$'\n'
+run_test "repeated redirection stress (50 cycles) fd hygiene" "$stress_input" "stress-complete"
 
 # TC-12: Pipeline execution
 run_test "pipeline" $'printf "a\\nb\\nc\\n" | wc -l\nexit\n' "3"
@@ -164,8 +209,9 @@ else
 fi
 
 # Directory change with cd - (OLDPWD)
-actual=$(printf 'cd /tmp\ncd /var\ncd -\nexit\n' | "$SHELL_BIN" 2>/dev/null)
-if [[ "$actual" == *"/tmp"* ]]; then
+mkdir -p "$TMP_DIR/cd_d1" "$TMP_DIR/cd_d2"
+actual=$(printf 'cd '"$TMP_DIR"'/cd_d1\ncd '"$TMP_DIR"'/cd_d2\ncd -\nexit\n' | "$SHELL_BIN" 2>/dev/null)
+if [[ "$actual" == *"$TMP_DIR/cd_d1"* ]]; then
     printf 'PASS: cd - toggle to OLDPWD\n'; PASS=$((PASS + 1))
 else
     printf 'FAIL: cd - toggle to OLDPWD (actual=%q)\n' "$actual"; FAIL=$((FAIL + 1))
@@ -189,12 +235,27 @@ run_recovery_test "redirection without command recovery" \
 run_recovery_test "recovery across blank lines and malformed syntax" \
     $'\n  \necho "unterminated\n\n  \necho recovered\nexit\n' "recovered" "shell: syntax error:"
 
-# TC-15: Inaccessible / missing input file recovery (previously manual)
-actual=$(printf 'cat < '"$TMP_DIR"'/nonexistent_missing.txt\necho alive\nexit\n' | "$SHELL_BIN" 2>/dev/null)
-if [[ "$actual" == "alive" ]]; then
-    printf 'PASS: missing input file recovery\n'; PASS=$((PASS + 1))
+# TC-15: Inaccessible / missing input file recovery
+input=$(printf 'cat < %s/nonexistent_missing.txt\necho alive\nexit\n' "$TMP_DIR")
+run_recovery_test "missing input file diagnostic and recovery" \
+    "$input" "alive" "shell: cannot open"
+
+# Failed external command output redirection recovery
+input=$(printf 'printf fail > %s/nonexistent_dir/err.txt\necho alive\nexit\n' "$TMP_DIR")
+run_recovery_test "failed external output redirection recovery" \
+    "$input" "alive" "shell: cannot open"
+
+# Failed built-in output redirection: diagnostic emitted and built-in execution inhibited
+actual_stdout=$(printf 'cd '"$TMP_DIR"'/cd_d1\ncd '"$TMP_DIR"'/cd_d2 > '"$TMP_DIR"'/nonexistent_dir/err.txt\npwd\nexit\n' | "$SHELL_BIN" 2>"$TMP_DIR/cd_err.txt")
+actual_stderr=$(cat "$TMP_DIR/cd_err.txt")
+if [[ "$actual_stdout" == *"$TMP_DIR/cd_d1"* && "$actual_stderr" == *"shell: cannot open"* ]]; then
+    printf 'PASS: failed output redirection inhibits built-in execution\n'
+    PASS=$((PASS + 1))
 else
-    printf 'FAIL: missing input file recovery (actual=%q)\n' "$actual"; FAIL=$((FAIL + 1))
+    printf 'FAIL: failed output redirection inhibits built-in execution\n'
+    printf '  actual stdout: %q\n' "$actual_stdout"
+    printf '  actual stderr: %q\n' "$actual_stderr"
+    FAIL=$((FAIL + 1))
 fi
 
 # TC-16: Foreground process synchronization (previously manual)
