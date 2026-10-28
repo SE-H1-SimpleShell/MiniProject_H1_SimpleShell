@@ -145,7 +145,7 @@ static void child_exec(const struct Command *cmd, int in_fd, int out_fd) {
     }
 
     if (apply_redirection(cmd) != 0) {
-        _exit(126);
+        _exit(1);
     }
 
     if (is_builtin(cmd->argv[0])) {
