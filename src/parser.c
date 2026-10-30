@@ -389,6 +389,19 @@ int parse_line(const char *line, struct Pipeline *pipeline, char *error, size_t 
         return 0;
     }
 
+    /* Count only unquoted operators; quoted and escaped ampersands are words. */
+    size_t background_count = 0U;
+    for (size_t i = 0U; i < tokens.count; ++i) {
+        if (is_op(&tokens.items[i], "&")) {
+            ++background_count;
+        }
+    }
+    if (background_count > 1U) {
+        set_error(error, error_size, "multiple background operators are not supported");
+        free_tokens(&tokens);
+        return -1;
+    }
+
     pipeline->count = 1U;
     struct Command *current = &pipeline->commands[0];
 
@@ -465,12 +478,6 @@ int parse_line(const char *line, struct Pipeline *pipeline, char *error, size_t 
         }
 
         if (is_op(token, "&")) {
-            if (pipeline->background) {
-                set_error(error, error_size, "multiple background operators are not supported");
-                free_tokens(&tokens);
-                free_pipeline(pipeline);
-                return -1;
-            }
             if (i + 1U != tokens.count) {
                 set_error(error, error_size, "background operator must be at the end");
                 free_tokens(&tokens);

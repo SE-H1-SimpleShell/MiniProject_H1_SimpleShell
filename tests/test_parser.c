@@ -194,6 +194,62 @@ int main(void) {
     }
     check(lifecycle_ok, "repeated parse-and-free lifecycle leak-free under ASan");
 
+    /* Check diagnostics and teardown, including errors in later stages. */
+    const struct {
+        const char *line;
+        const char *diagnostic;
+    } invalid[] = {
+        {"cat < a < b", "multiple input redirections"},
+        {"echo x > a > b", "multiple output redirections"},
+        {"echo x >> a > b", "multiple output redirections"},
+        {"echo x > a >> b", "multiple output redirections"},
+        {"echo x >> a >> b", "multiple output redirections"},
+        {"echo x | cat < a < b", "multiple input redirections"},
+        {"echo x | cat > a > b", "multiple output redirections"},
+        {"| cat", "empty command before pipe"},
+        {"echo x |", "empty command in pipeline"},
+        {"echo x || cat", "empty command before pipe"},
+        {"echo x | | cat", "empty command before pipe"},
+        {"cat < | cat", "redirection requires a file name"},
+        {"echo x >>> a", "redirection requires a file name"},
+        {"echo x & cat", "background operator must be at the end"},
+        {"echo x & | cat", "background operator must be at the end"},
+        {"echo x &&", "multiple background operators"},
+        {"echo x & &", "multiple background operators"},
+        {"echo x & cat &", "multiple background operators"},
+        {"&", "background operator without a command"},
+        {"echo x | &", "background operator without a command"},
+    };
+    for (size_t i = 0U; i < sizeof(invalid) / sizeof(invalid[0]); ++i) {
+        int rc = parse_line(invalid[i].line, &p, error, sizeof(error));
+        check(rc != 0 && strstr(error, invalid[i].diagnostic) != NULL &&
+              p.count == 0U && p.background == 0, invalid[i].line);
+        free_pipeline(&p);
+    }
+
+    char stages[1024] = "echo x";
+    for (size_t i = 1U; i < MAX_PIPE_SEGMENTS; ++i) {
+        strcat(stages, " | cat");
+    }
+    check(parse_line(stages, &p, error, sizeof(error)) == 0 &&
+          p.count == MAX_PIPE_SEGMENTS, "32 pipeline stages accepted");
+    free_pipeline(&p);
+    strcat(stages, " | cat");
+    check(parse_line(stages, &p, error, sizeof(error)) != 0 &&
+          strstr(error, "pipeline is too long") != NULL && p.count == 0U,
+          "33 pipeline stages rejected and allocations released");
+    free_pipeline(&p);
+
+    check(parse_line("echo '|' \"&\" \\& '<' '>' '>>'", &p, error, sizeof(error)) == 0 &&
+          p.count == 1U && p.background == 0 && p.commands[0].argc == 7U,
+          "quoted and escaped operators remain arguments");
+    free_pipeline(&p);
+    check(parse_line("echo x|cat>out&", &p, error, sizeof(error)) == 0 &&
+          p.count == 2U && p.background == 1 &&
+          strcmp(p.commands[1].output_file, "out") == 0,
+          "adjacent operators accepted without whitespace");
+    free_pipeline(&p);
+
     printf("\nParser tests: %d failed\n", failures);
     return failures == 0 ? 0 : 1;
 }
