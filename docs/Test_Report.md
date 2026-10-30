@@ -2,7 +2,8 @@
 
 ## Operator and two-stage pipeline validation
 
-Validation on 31 October 2026 used Kali Linux under WSL2, GCC 15.2.0,
+Validation of the branch under review in [PR #27](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/27)
+on 31 October 2026 used Kali Linux under WSL2, GCC 15.2.0,
 and the strict C11 flags in the [Makefile](../Makefile). Both `make test`
 and `make asan-test` passed with zero failures and no sanitizer diagnostics.
 
@@ -20,7 +21,10 @@ hang fail the executor test process. Waiting for each stage is verified using
 file side effects after a delayed producer or consumer, independently of stdout
 capture. These tests do not inject `fork`, `pipe`, or `waitpid` failures.
 
-The validation below records the earlier CI automation run.
+The validation below records the earlier CI automation run. Its test totals and
+recorded output describe that run, rather than the current suite. Scenario counts
+do not establish exhaustive requirement or code coverage; the current coverage
+gaps are listed in [RTM.md](RTM.md).
 
 ## 1. Status
 
