@@ -306,16 +306,36 @@ static int execute_children(const struct Pipeline *pipeline) {
     int last_status = 0;
     int wait_failed = 0;
 
-    for (size_t i = 0U; i < pid_count; ++i) {
+    size_t remaining = pid_count;
+    while (remaining > 0U) {
         int status = 0;
-
-        if (wait_for_pid(pids[i], &status) != 0) {
+        pid_t completed = waitpid(-1, &status, 0);
+        if (completed < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
             fprintf(stderr, "shell: waitpid: %s\n", strerror(errno));
             wait_failed = 1;
-            continue;
+            break;
         }
 
-        if (i + 1U == pid_count) {
+        size_t stage = 0U;
+        while (stage < pid_count && pids[stage] != completed) {
+            ++stage;
+        }
+        if (stage == pid_count) {
+            /* A background job completed while the foreground job ran. */
+            if (WIFEXITED(status)) {
+                fprintf(stderr, "[background pid %ld exited %d]\n",
+                        (long)completed, WEXITSTATUS(status));
+            } else if (WIFSIGNALED(status)) {
+                fprintf(stderr, "[background pid %ld terminated by signal %d]\n",
+                        (long)completed, WTERMSIG(status));
+            }
+            continue;
+        }
+        --remaining;
+        if (stage + 1U == pid_count) {
             if (WIFEXITED(status)) {
                 last_status = WEXITSTATUS(status);
             } else if (WIFSIGNALED(status)) {
