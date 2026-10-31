@@ -68,6 +68,8 @@ Long-running commands, hanging child processes, or deadlock in pipe synchronizat
 
 The project leverages GCC compiler instrumentation to detect memory and runtime undefined behavior defects early:
 
+The executor component harness also uses a 20-second alarm to bound pipe hangs; the workflow step limits cover the full suite.
+
 ### 5.1 AddressSanitizer (ASan)
 Instrumented with `-fsanitize=address -fno-omit-frame-pointer -g3`:
 - Detects out-of-bounds heap, stack, and global buffer accesses.
@@ -104,6 +106,6 @@ bash tests/test_sanitizers.sh
 - [x] Push and pull request triggers configured targeting `main`.
 - [x] Runs on `ubuntu-latest` with standard GCC C11.
 - [x] Executes `make`, `make test`, and `make asan-test` with dedicated 5-minute timeouts.
-- [x] All 70 automated test checks passing (36 parser unit tests + 34 shell integration tests) with zero failures.
+- [x] Automated test suite passing with zero failures. Current suite totals and recorded runs are maintained in [Test_Report.md](Test_Report.md).
 - [x] Zero AddressSanitizer or UndefinedBehaviorSanitizer diagnostics emitted.
 - [x] Pull request opened, reviewed, and merged to `main`.

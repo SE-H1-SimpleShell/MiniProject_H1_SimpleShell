@@ -323,6 +323,36 @@ fi
 printf 'exit\n' >&3
 exec 3>&-
 wait "$shell_pid" || true
+# A rejected line must neither launch an earlier stage nor create redirect files.
+for invalid in \
+    "touch $TMP_DIR/must-not-exist | cat > $TMP_DIR/rejected-out > $TMP_DIR/rejected-other" \
+    "touch $TMP_DIR/must-not-exist | cat < a < b" \
+    "touch $TMP_DIR/must-not-exist |" \
+    "touch $TMP_DIR/must-not-exist || cat" \
+    "touch $TMP_DIR/must-not-exist & echo unexpected" \
+    "touch $TMP_DIR/must-not-exist &&" \
+    "touch $TMP_DIR/must-not-exist & &"; do
+    run_recovery_test "reject before execution: $invalid" \
+        "$invalid"$'\necho recovered\nexit\n' "recovered" "shell: syntax error:"
+done
+if [[ ! -e "$TMP_DIR/must-not-exist" && ! -e "$TMP_DIR/rejected-out" && ! -e "$TMP_DIR/rejected-other" ]]; then
+    printf 'PASS: malformed operators cause no command or redirection side effects\n'
+    PASS=$((PASS + 1))
+else
+    printf 'FAIL: malformed operators caused side effects\n'
+    FAIL=$((FAIL + 1))
+fi
+
+# Check the full REPL boundary as well as the parser boundary.
+max_pipeline='echo boundary'
+for ((stage = 1; stage < 32; ++stage)); do
+    max_pipeline+=' | cat'
+done
+run_test "32-stage pipeline executes" "$max_pipeline"$'\nexit\n' "boundary"
+run_recovery_test "33-stage pipeline rejected before execution" \
+    "$max_pipeline | cat"$'\necho recovered\nexit\n' "recovered" "pipeline is too long"
+run_test "quoted operators pass through builtin pipeline" \
+    $'echo "|" "&" "<" ">" ">>" | cat\nexit\n' '| & < > >>'
 
 printf '\nTotal: %d passed, %d failed\n' "$PASS" "$FAIL"
 [[ $FAIL -eq 0 ]]
