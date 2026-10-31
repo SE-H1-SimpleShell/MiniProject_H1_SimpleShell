@@ -1,5 +1,31 @@
 # Test Report — Simple Shell
 
+## Operator and two-stage pipeline validation
+
+Validation of the branch under review in [PR #27](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/27)
+on 31 October 2026 used Kali Linux under WSL2, GCC 15.2.0,
+and the strict C11 flags in the [Makefile](../Makefile). Both `make test`
+and `make asan-test` passed with zero failures and no sanitizer diagnostics.
+
+| Suite | Passed | Evidence |
+|---|---:|---|
+| Parser | 63 | [Parser tests](../tests/test_parser.c): operator diagnostics, cleanup after rejection, quoted operators, and the 32/33-stage boundary |
+| Executor | 17 | [Executor tests](../tests/test_executor.c): external and built-in stages, rightmost status, both-child waiting, EOF, and parent-state isolation |
+| Shell integration | 57 | [Shell tests](../tests/test_shell.sh): error recovery, no execution/file side effects for malformed operators, and pipeline limits |
+| Total per build | 137 | All three suites run through `make test` and `make asan-test` |
+
+The executor harness runs 100 two-stage pipelines with a soft file-descriptor
+limit of 64, checks that the open-descriptor count is unchanged, and verifies
+that no foreground children remain to reap. A 20-second alarm makes a pipe
+hang fail the executor test process. Waiting for each stage is verified using
+file side effects after a delayed producer or consumer, independently of stdout
+capture. These tests do not inject `fork`, `pipe`, or `waitpid` failures.
+
+The validation below records the earlier CI automation run. Its test totals and
+recorded output describe that run, rather than the current suite. Scenario counts
+do not establish exhaustive requirement or code coverage; the current coverage
+gaps are listed in [RTM.md](RTM.md).
+
 ## 1. Status
 
 **Validation run completed successfully and verified under automated CI.**

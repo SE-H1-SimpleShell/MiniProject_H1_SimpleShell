@@ -12,7 +12,7 @@ Validate Simple Shell against its functional requirements and non-functional con
 
 | Level | Method | Evidence |
 |---|---|---|
-| Unit/component | Parser and targeted module tests | Actual parser output |
+| Unit/component | Parser and direct executor tests | Parser and executor output |
 | Integration | Shell command scenarios through the harness | Actual integration-test output |
 | Robustness/security | Malformed input, missing files, limits and repeated runs | Inputs, outputs and sanitizer diagnostics |
 | System/acceptance | Fresh clone, build and command demonstration | Test report and demo evidence |
@@ -29,7 +29,15 @@ From a clean checkout, run:
     make test
     make asan-test
 
-Also exercise the documented manual cases: escaped spaces, background prompt return/reaping, missing input files, foreground waiting and long-pipeline stress. Store actual output in the execution report.
+`make test` includes escaped spaces, missing input files, foreground waiting,
+background non-blocking return, operator rejection before side effects, pipeline
+limits, and repeated two-stage pipeline descriptor checks. Direct executor tests
+verify waiting for both stages and foreground child reaping. See the
+[recorded validation](../docs/Test_Report.md) for suite results and limitations.
+
+Manual review remains necessary for interactive terminal behavior, background
+completion notifications/reaping, and the full regression/resource audit tracked
+by the remaining Sprint 2 stories. The tests do not inject system-call failures.
 
 ## Entry criteria
 - Source, headers and tests are checked out.

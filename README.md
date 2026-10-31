@@ -16,6 +16,9 @@ A lightweight Unix-like command-line interpreter written in C for Linux.
 - Error handling for common parser/process/file failures
 
 Redirection, pipelines and background execution apply to built-ins as well as external programs.
+Foreground pipelines wait for every stage and return the rightmost stage's status to the
+executor caller. Built-ins in a pipeline run in children, so `cd` and `exit` affect only
+their stage. File redirection on a stage takes precedence over its pipe connection.
 
 ## Build
 
@@ -77,6 +80,10 @@ These are enforced by the parser and reported as syntax errors.
 ```bash
 make test
 ```
+
+`make test` runs parser checks, direct executor tests, and shell integration scenarios.
+The executor tests cover built-in stages, pipe EOF, child reaping, and repeated pipelines
+under a 64-descriptor limit. A 20-second alarm bounds the executor test process.
 
 For sanitizer validation:
 

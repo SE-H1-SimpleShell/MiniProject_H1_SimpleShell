@@ -38,10 +38,18 @@ test_parser: $(BUILD)/test_parser.o $(BUILD)/parser.o
 $(BUILD)/test_parser.o: tests/test_parser.c | $(BUILD)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+test_executor: $(BUILD)/test_executor.o $(BUILD)/executor.o $(BUILD)/parser.o $(BUILD)/builtins.o
+	$(CC) $(CFLAGS) $^ -o $(BUILD)/test_executor $(LDFLAGS)
+
+$(BUILD)/test_executor.o: tests/test_executor.c | $(BUILD)
+	$(CC) $(CFLAGS) -c $< -o $@
+
 # Run unit tests and shell integration test scenarios
-test: $(TARGET) test_parser
+test: $(TARGET) test_parser test_executor
 	@echo "=== Running Parser Unit Tests ==="
 	./$(BUILD)/test_parser
+	@echo "=== Running Executor Tests ==="
+	./$(BUILD)/test_executor
 	@echo "=== Running Shell Integration Test Suite ==="
 	bash tests/test_shell.sh ./$(TARGET)
 

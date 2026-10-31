@@ -3,7 +3,11 @@
 **Repository:** [SE-H1-SimpleShell/MiniProject_H1_SimpleShell](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell)  
 **Deliverable:** Software Engineering Mini-Project Part-2 (Backlog Creation)  
 **ETA:** 12th October 2026  
-**Status:** Published to GitHub Issues & Board  
+**Status:** Published to GitHub Issues & Board
+
+Status snapshot: Sprint 1 issues and redirection (#10) are closed. Operator validation
+and two-stage pipeline verification (#11/#12) are in review in [PR #27](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/27).
+The [live board](https://github.com/orgs/SE-H1-SimpleShell/projects/2) is authoritative for subsequent status changes.
 
 ---
 
@@ -24,15 +28,15 @@
 
 | Issue | Title | Epic | Requirements | Points | Assignee | Status |
 |---|---|---|---|:---:|---|:---:|
-| [#2](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/2) | [S1-01] Modular Architecture, Source Structure & C11 Build Setup | Core Shell | NFR-02, NFR-05 | 3 | @ShrikarDesai07 | Ready |
-| [#3](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/3) | [S1-02] Interactive Command Loop, Prompt Display & Clean Termination | Core Shell | FR-01, FR-10, NFR-04 | 3 | @ShrikarDesai07 | Ready |
-| [#19](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/19) | [S1-03] Command Line Tokenizer, Quote Parsing & Escape Handling | Core Shell | FR-04, NFR-07 | 5 | @KadakWNL | Ready |
-| [#4](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/4) | [S1-04] Error Diagnostics, Malformed Syntax Handling & Safe Recovery | Core Shell | FR-08, NFR-01, NFR-04 | 3 | @KadakWNL | Ready |
-| [#5](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/5) | [S1-05] External Command Execution via Fork/Execvp & Foreground Waiting | Core Shell | FR-02, FR-09, NFR-07 | 5 | @Aqual456 | Ready |
-| [#6](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/6) | [S1-06] Parser Memory Lifecycle, File Descriptor Hygiene & Teardown | Core Shell | FR-10, NFR-03 | 3 | @Aqual456 | Ready |
-| [#7](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/7) | [S1-07] Built-in Commands Implementation: cd, pwd, echo, help, exit | Core Shell | FR-03 | 5 | @sudeeksh02 | Ready |
-| [#8](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/8) | [S1-08] GitHub Actions CI Automation for PRs, Commits & Sanitizer Checks | Testing & Quality | NFR-05, NFR-06 | 3 | @sudeeksh02 | Completed |
-| [#9](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/9) | [S1-09] Sprint 1 Validation, Fresh Clone Verification & 1-Minute Demo Video | Documentation & Release | NFR-08, Deliverable | 2 | @ShrikarDesai07 | Ready |
+| [#2](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/2) | [S1-01] Modular Architecture, Source Structure & C11 Build Setup | Core Shell | NFR-02, NFR-05 | 3 | @ShrikarDesai07 | Done |
+| [#3](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/3) | [S1-02] Interactive Command Loop, Prompt Display & Clean Termination | Core Shell | FR-01, FR-10, NFR-04 | 3 | @ShrikarDesai07 | Done |
+| [#19](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/19) | [S1-03] Command Line Tokenizer, Quote Parsing & Escape Handling | Core Shell | FR-04, NFR-07 | 5 | @KadakWNL | Done |
+| [#4](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/4) | [S1-04] Error Diagnostics, Malformed Syntax Handling & Safe Recovery | Core Shell | FR-08, NFR-01, NFR-04 | 3 | @KadakWNL | Done |
+| [#5](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/5) | [S1-05] External Command Execution via Fork/Execvp & Foreground Waiting | Core Shell | FR-02, FR-09, NFR-07 | 5 | @Aqual456 | Done |
+| [#6](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/6) | [S1-06] Parser Memory Lifecycle, File Descriptor Hygiene & Teardown | Core Shell | FR-10, NFR-03 | 3 | @Aqual456 | Done |
+| [#7](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/7) | [S1-07] Built-in Commands Implementation: cd, pwd, echo, help, exit | Core Shell | FR-03 | 5 | @sudeeksh02 | Done |
+| [#8](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/8) | [S1-08] GitHub Actions CI Automation for PRs, Commits & Sanitizer Checks | Testing & Quality | NFR-05, NFR-06 | 3 | @sudeeksh02 | Done |
+| [#9](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/9) | [S1-09] Sprint 1 Validation, Fresh Clone Verification & 1-Minute Demo Video | Documentation & Release | NFR-08, Deliverable | 2 | @ShrikarDesai07 | Done |
 
 **Sprint 1 Velocity:** 32 Story Points
 
@@ -43,9 +47,9 @@
 
 | Issue | Title | Epic | Requirements | Points | Assignee | Status |
 |---|---|---|---|:---:|---|:---:|
-| [#10](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/10) | [S2-01] I/O Redirection Support (<, >, >>) for Built-in & External Commands | Advanced Features | FR-05, FR-08, NFR-03 | 5 | @ShrikarDesai07 | Backlog |
-| [#11](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/11) | [S2-02] Advanced Operator Pre-Validation & Strict Syntax Verification | Advanced Features | FR-04, FR-08, NFR-07 | 3 | @KadakWNL | Backlog |
-| [#12](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/12) | [S2-03] Two-Stage Pipeline Implementation Connecting Commands and Built-ins | Advanced Features | FR-06, FR-09, NFR-03 | 5 | @KadakWNL | Backlog |
+| [#10](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/10) | [S2-01] I/O Redirection Support (<, >, >>) for Built-in & External Commands | Advanced Features | FR-05, FR-08, NFR-03 | 5 | @ShrikarDesai07 | Done |
+| [#11](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/11) | [S2-02] Advanced Operator Pre-Validation & Strict Syntax Verification | Advanced Features | FR-04, FR-08, NFR-07 | 3 | @KadakWNL | In review |
+| [#12](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/12) | [S2-03] Two-Stage Pipeline Implementation Connecting Commands and Built-ins | Advanced Features | FR-06, FR-09, NFR-03 | 5 | @KadakWNL | In review |
 | [#13](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/13) | [S2-04] Multi-Stage Pipeline Expansion & Deadlock Prevention | Advanced Features | FR-05, FR-06, FR-09 | 3 | @sudeeksh02 | Backlog |
 | [#14](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/14) | [S2-05] Background Command Execution (&) & Asynchronous Zombie Reaping | Advanced Features | FR-07, FR-09 | 5 | @Aqual456 | Backlog |
 | [#15](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/15) | [S2-06] Comprehensive Resource Audit: Sanitizers, Descriptors & Stress Safety | Testing & Quality | FR-10, NFR-01, NFR-03 | 3 | @Aqual456 | Backlog |
