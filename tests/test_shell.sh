@@ -278,6 +278,79 @@ else
     printf 'FAIL: background execution non-blocking (waited %ds, expected < 2s)\n' "$dur_bg"; FAIL=$((FAIL + 1))
 fi
 
+# TC-17: Background child is asynchronously reaped while shell is idle
+fifo="$TMP_DIR/bg_reap_input.fifo"
+bg_stdout="$TMP_DIR/bg_reap_stdout.txt"
+bg_stderr="$TMP_DIR/bg_reap_stderr.txt"
+
+mkfifo "$fifo"
+
+"$SHELL_BIN" < "$fifo" > "$bg_stdout" 2> "$bg_stderr" &
+shell_pid=$!
+
+# Open FIFO read/write so the shell can start without blocking.
+exec 3<> "$fifo"
+
+# Launch a background process and keep the shell idle.
+printf 'sleep 1 &\n' >&3
+
+bg_pid=""
+for attempt in {1..30}; do
+    bg_pid=$(sed -n 's/^\[background pid \([0-9][0-9]*\)\]$/\1/p' "$bg_stdout" | head -n 1)
+    [[ -n "$bg_pid" ]] && break
+    sleep 0.1
+done
+
+# Both the initial prompt and the returned prompt must appear before sleep exits.
+prompt_count=$(grep -oF 'simple-shell$ ' "$bg_stderr" | wc -l || true)
+if [[ "$prompt_count" -ge 2 ]]; then
+    printf 'PASS: background launch immediately returns prompt\n'; PASS=$((PASS + 1))
+else
+    printf 'FAIL: background launch immediately returns prompt\n'; FAIL=$((FAIL + 1))
+fi
+
+if [[ -z "$bg_pid" ]]; then
+    printf 'FAIL: asynchronous background reaping (could not capture background PID)\n'
+    FAIL=$((FAIL + 1))
+else
+    # Do not send another command. The shell must reap the child while idle.
+    sleep 2
+
+    process_state=$(ps -o stat= -p "$bg_pid" 2>/dev/null || true)
+
+    if [[ -z "$process_state" ]]; then
+        printf 'PASS: background child asynchronously reaped while shell is idle\n'
+        PASS=$((PASS + 1))
+    else
+        printf 'FAIL: background child still exists after completion (state: %s)\n' "$process_state"
+        FAIL=$((FAIL + 1))
+    fi
+fi
+
+# Shut down the shell cleanly.
+printf 'exit\n' >&3
+exec 3>&-
+wait "$shell_pid" || true
+# Reaping must continue while a foreground pipeline is running.
+"$SHELL_BIN" < "$fifo" > "$bg_stdout" 2> "$bg_stderr" &
+shell_pid=$!
+exec 3<> "$fifo"
+printf 'sleep 1 &\nsleep 4 | sleep 4\nexit\n' >&3
+bg_pid=""
+for attempt in {1..30}; do
+    bg_pid=$(sed -n 's/^\[background pid \([0-9][0-9]*\)\]$/\1/p' "$bg_stdout" | head -n 1)
+    [[ -n "$bg_pid" ]] && break
+    sleep 0.1
+done
+sleep 2
+process_state=$(ps -o stat= -p "${bg_pid:-0}" 2>/dev/null || true)
+if [[ -n "$bg_pid" && -z "$process_state" ]] && kill -0 "$shell_pid" 2>/dev/null; then
+    printf 'PASS: background child reaped during foreground pipeline\n'; PASS=$((PASS + 1))
+else
+    printf 'FAIL: background child reaped during foreground pipeline (state: %s)\n' "$process_state"; FAIL=$((FAIL + 1))
+fi
+exec 3>&-
+wait "$shell_pid" || true
 # A rejected line must neither launch an earlier stage nor create redirect files.
 for invalid in \
     "touch $TMP_DIR/must-not-exist | cat > $TMP_DIR/rejected-out > $TMP_DIR/rejected-other" \
