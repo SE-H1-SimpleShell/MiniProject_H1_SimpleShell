@@ -36,7 +36,7 @@ Additional checks:
 - Every requirement carries a stable identifier and appears exactly once in the SRS.
 - Every FR has an explicit, objectively checkable acceptance criterion.
 - Every FR is mapped in the RTM to a use case, an implementation module, a Jira issue and a test.
-- Documented limits in SRS Section 7.1 match the limits enforced in the parser.
+- Documented limits in SRS Section 2.7 match the limits enforced in the parser.
 - Any change to an agreed requirement is reflected in the SRS, the RTM and the test cases together.
 
 ## 5. Functional validation
@@ -93,7 +93,7 @@ authorisation, scope and method for a later execution phase.
 - **Authorisation:** local robustness testing of this project's own binary by the team members,
   on development machines only.
 - **In scope:** the `parse_line` entry point, the interactive command loop, and the parser limits in
-  SRS Section 7.1.
+  SRS Section 2.7.
 - **Out of scope:** any external or third-party system, any networked service (the shell has none),
   privilege escalation, persistence, and any activity that would degrade a shared or production
   system.

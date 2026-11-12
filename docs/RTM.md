@@ -6,6 +6,11 @@ Jira issue that tracks it, and the test that verifies it.
 Use case identifiers are defined in `docs/Use_Case_Catalog.md`. Verification identifiers for the
 non-functional requirements are defined in `docs/Test_Cases.md`.
 
+Security objectives SO-01 … SO-03 and security requirements SR-01 … SR-04 in `docs/SRS.md`
+Section 3.4 are cross-cutting refinements of the FR/NFR baseline. They map to the rows below and
+are validated by activities SEC-01 … SEC-06 in `docs/Validation_Specification.md` Section 7; they
+do not introduce additional baseline requirement rows.
+
 ## 1. Functional requirements
 
 

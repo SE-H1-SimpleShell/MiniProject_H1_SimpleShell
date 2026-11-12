@@ -1,6 +1,6 @@
 # Functional Requirements
 
-Source of truth: [docs/SRS.md, Section 5](../docs/SRS.md).
+Source of truth: [docs/SRS.md, Section 3.2](../docs/SRS.md#32-functional-requirements).
 
 | ID | Requirement | Acceptance summary |
 |---|---|---|

@@ -1,7 +1,7 @@
 # 4 — Architectural Design
 
 Contents:
-- [Architecture](Architecture.md) — existing module design.
+- [Architecture](Architecture.md) — IEEE 42010/1016 SAD: stakeholders, architectural views, interfaces, traceability, and deviations.
 - [Architecture Selection and Justification](Architecture_Selection.md).
 - [API and Component Interfaces](API_and_Component_Interfaces.md).
 - **Architecture diagram (PlantUML):** [source](Architecture.puml) · [PNG](Architecture.png) · [SVG](Architecture.svg) — component and layered view with the POSIX services the shell depends on.
