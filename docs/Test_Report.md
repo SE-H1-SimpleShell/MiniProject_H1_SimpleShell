@@ -1,9 +1,26 @@
 # Test Report — Simple Shell
 
-## Multi-stage pipeline, deadlock prevention, and full regression validation
+## 1. Latest Release & CI Validation Summary (`v1.0-final`)
 
-Validation of issues #13 (`[S2-04] Multi-Stage Pipeline Expansion & Deadlock Prevention`) and #16 (`[S2-07] Full Regression Testing, RTM Traceability Sync & Test Report`)
-on branch `nov-w1-work` used Ubuntu Linux 24.04 LTS / WSL2, GCC 13.3.0,
+Following the merge of the resource-audit and termination-cleanup hardening in PR #32 (`main` commit `859b43e`, tagged `v1.0-final`), the full suite runs **four complementary validation harnesses totaling 164 automated checks per build** across `make test` and `make asan-test`, plus Valgrind leak/descriptor analysis via `make valgrind`.
+
+| Suite / Harness | Passed | Failed | Evidence |
+|---|---:|---:|---|
+| Parser (`tests/test_parser.c`) | 63 | 0 | [Parser tests](../tests/test_parser.c): argument/quote tokenization, operator diagnostics, cleanup after rejection, quoted operators, and the 32/33-stage boundary |
+| Executor (`tests/test_executor.c`) | 29 | 0 | [Executor tests](../tests/test_executor.c): external and built-in stages, multi-stage pipelines (3, 4, and 32 stages), rightmost status propagation, intermediate and terminal child waiting, large-stream deadlock avoidance, early consumer exit, and descriptor cleanliness |
+| Shell integration (`tests/test_shell.sh`) | 70 | 0 | [Shell tests](../tests/test_shell.sh): syntax error recovery, multi-stage pipelines (3, 4, 5, and 32 stages), pipelines combined with input/output redirections, large-stream deadlock avoidance, asynchronous background reaping, `SIGTERM` cleanup, and regression stress loops |
+| Termination cleanup (`tests/test_termination.py`) | 2 | 0 | [Termination harness](../tests/test_termination.py): `SIGTERM` interruption of foreground waits, descendant termination/reaping (`background=False` and `background=True`), and exit status `143` |
+| **Total per build (`make test` / `make asan-test`)** | **164** | **0** | Verified on Ubuntu Linux in GitHub Actions [CI Run #77](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/actions/runs/43251661085) (`328` total checks across standard + ASan/UBSan runs) |
+| Valgrind audit (`make valgrind`) | Passed | 0 | `valgrind 3.26.0`: `0 errors from 0 contexts` across `test_parser`, `test_executor`, and `echo audit | cat / sleep 30 & / exit` |
+
+**Note on local Windows/MSYS2 runs:** On non-Linux hosts (Windows/MSYS2 emulation), `make asan-test` (`-lasan`/`-lubsan` unavailable), `make valgrind`, `tests/test_termination.py` (`/proc` and POSIX `SIGTERM` exit semantics), and `TC-13` integer-second timing under `fork()` overhead are Linux-specific; Linux (`ubuntu-latest` CI runner) is the target validation environment per SRS Section 2.4.
+
+---
+
+## 2. Historical Sprint 2 Validation (Multi-Stage Pipelines & Full Regression)
+
+Historical validation of issues #13 (`[S2-04] Multi-Stage Pipeline Expansion & Deadlock Prevention`) and #16 (`[S2-07] Full Regression Testing, RTM Traceability Sync & Test Report`)
+on branch `nov-w1-work` (prior to PR #32 adding the 70th integration case and the 2-check Python termination harness) used Ubuntu Linux 24.04 LTS / WSL2, GCC 13.3.0,
 and the strict C11 flags in the [Makefile](../Makefile). `make test` passed on the first run.
 `make asan-test` passed on rerun with zero failures and no sanitizer diagnostics. Its first run
 had one flaky foreground synchronization timing assertion; the repeated run passed.
@@ -13,7 +30,7 @@ had one flaky foreground synchronization timing assertion; the repeated run pass
 | Parser | 63 | [Parser tests](../tests/test_parser.c): operator diagnostics, cleanup after rejection, quoted operators, and the 32/33-stage boundary |
 | Executor | 29 | [Executor tests](../tests/test_executor.c): external and built-in stages, multi-stage pipelines (3, 4, and 32 stages), rightmost status propagation, intermediate and terminal child waiting, large-stream deadlock avoidance, early consumer exit, and descriptor cleanliness |
 | Shell integration | 69 | [Shell tests](../tests/test_shell.sh): syntax error recovery, multi-stage pipelines (3, 4, 5, and 32 stages), pipelines combined with input/output redirections, large-stream deadlock avoidance, asynchronous background process reaping, and regression stress loops |
-| Total per build | 161 | `make test` and the successful `make asan-test` rerun (322 checks across successful runs) |
+| Historical total per build | 161 | `make test` and the successful `make asan-test` rerun (322 checks across successful runs) |
 
 The executor harness tests multi-stage pipelines with 3, 4, and up to 32 concurrent stages.
 It verifies concurrent execution on high data volumes (`seq 50000 | cat | wc -l`), ensuring
@@ -30,39 +47,41 @@ The shell integration harness tests end-to-end multi-stage pipelines with built-
 and external utilities, pipelines combined with `<` input and `>` output redirections,
 subshell built-in directory/exit isolation, and full automated regression stress cycles (TC-17).
 
-## 1. Status
+## 3. Status
 
-**Validation run completed successfully and verified under automated CI.**
-This document records the validation evidence produced across local Linux/WSL environments and verified in the automated GitHub Actions CI workflow for Issue #8 ([S1-08] GitHub Actions CI Automation for PRs, Commits & Sanitizer Checks).
+**Validation runs completed successfully and verified under automated CI.**
+This document records the validation evidence produced across local Linux/WSL environments and verified in the automated GitHub Actions CI workflow for Issue #8 ([S1-08] GitHub Actions CI Automation for PRs, Commits & Sanitizer Checks), Resource Audit Issue #15 ([PR #32](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/32)), and release `v1.0-final`.
 
-## 2. Target environment for validation
+## 4. Target environment for validation
 
 | Property | Required | Actual CI / Local Environment |
 |---|---|---|
-| OS | Linux, x86_64 | Ubuntu 24.04 LTS (`ubuntu-latest` runner) / Linux WSL2 (6.6.87.2) |
-| Compiler | GCC, C11 mode | `gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0` |
+| OS | Linux, x86_64 | Ubuntu (`ubuntu-latest` CI runner) / Ubuntu 24.04 LTS WSL2 (6.6.87.2) |
+| Compiler | GCC, C11 mode | GCC in `-std=c11` mode (`gcc 13.3.0` on Ubuntu 24.04 LTS) |
 | Build flags | `-std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes` | Exact flags applied in Makefile |
 | Sanitizers | AddressSanitizer + UndefinedBehaviorSanitizer | `-fsanitize=address,undefined -fno-omit-frame-pointer -g3` |
-| Shell for the harness | bash | GNU bash, version 5.2.21 |
+| Valgrind | Memory & leak analyzer | `valgrind 3.26.0` on `ubuntu-latest` CI runner |
+| Shell & Python | bash, python3 | GNU bash 5.2.21, Python 3 |
 
-## 3. How to produce the evidence
+## 5. How to produce the evidence
 
 ```bash
 make clean
 make all
 make test
 make asan-test
+make valgrind
 ```
 
-Or execute the consolidated CI target:
+Or execute the consolidated CI target (builds standard and runs `make test` + `make asan-test`):
 
 ```bash
 make ci
 ```
 
-## 4. Recorded validation
+## 6. Recorded validation
 
-Executed in Ubuntu 24.04 LTS under WSL2 with GCC 13.3.0:
+### Historical run (Ubuntu 24.04 LTS WSL2, GCC 13.3.0 — Sprint 2 baseline before PR #32)
 
 | Command | Parser | Executor | Shell integration | Result |
 |---|---:|---:|---:|---|
@@ -70,18 +89,27 @@ Executed in Ubuntu 24.04 LTS under WSL2 with GCC 13.3.0:
 | `make asan-test` (first run) | 63 passed, 0 failed | 29 passed, 0 failed | 68 passed, 1 failed | Foreground synchronization timing assertion reported an anomalous `-100s` duration |
 | `make asan-test` (rerun) | 63 passed, 0 failed | 29 passed, 0 failed | 69 passed, 0 failed | Passed (161 checks); no sanitizer diagnostics |
 
-The timing failure did not reproduce on the complete sanitizer rerun. The standard run and rerun
-both completed successfully; the initial sanitizer run is recorded here rather than omitted.
+The timing failure did not reproduce on the complete sanitizer rerun and was later hardened deterministically via marker-file synchronization in PR #31 (`dc44a8b`). The historical initial sanitizer failure is retained here rather than omitted.
 
-## 5. Reproduction
+### Latest CI run (GitHub Actions `ubuntu-latest`, post-`v1.0-final` — CI Run #77)
+
+| Command | Parser | Executor | Shell integration | Termination (`test_termination.py`) | Result |
+|---|---:|---:|---:|---:|---|
+| `make test` | 63 passed, 0 failed | 29 passed, 0 failed | 70 passed, 0 failed | 2 passed, 0 failed | Passed (164 checks) |
+| `make asan-test` | 63 passed, 0 failed | 29 passed, 0 failed | 70 passed, 0 failed | 2 passed, 0 failed | Passed (164 checks); no sanitizer diagnostics |
+| `make valgrind` | `0 errors` | `0 errors` | `0 errors` (`echo audit \| cat / sleep 30 & / exit`) | N/A (tested under ASan/UBSan) | Passed (0 leaks, 0 errors across all contexts) |
+
+## 7. Reproduction
 
 ```bash
 make test
 make asan-test
+make valgrind
 ```
-## 6. Traceability to Quality Requirements
 
-- **NFR-01 (Reliability):** Regression procedures and pipeline cases in TC-01 through TC-18 were exercised with 161 automated checks per successful build across standard and sanitizer modes.
-- **NFR-03 (Memory Safety):** Clean execution under AddressSanitizer and UndefinedBehaviorSanitizer with zero memory leaks, zero buffer overflows, and verified file descriptor hygiene under tight rlimits.
+## 8. Traceability to Quality Requirements
+
+- **NFR-01 (Reliability):** Regression procedures and pipeline cases in TC-01 through TC-18 were exercised with 164 automated checks per successful build (161 historical Sprint 2 baseline + 3 termination/SIGTERM checks added in PR #32) across standard and sanitizer modes.
+- **NFR-03 (Memory Safety):** Clean execution under AddressSanitizer, UndefinedBehaviorSanitizer, and Valgrind with zero memory leaks, zero buffer overflows, and verified file descriptor hygiene under tight rlimits.
 - **NFR-05 (Portability):** Verified clean compilation under strict standard GCC C11 flags (`-std=c11 -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Wformat=2 -Wstrict-prototypes`) with LF normalized line endings across platforms.
-- **NFR-06 (Testability):** Functional behavior, multi-stage pipelines, and error recovery have automated regression coverage in the project test suite and CI workflow.
+- **NFR-06 (Testability):** Functional behavior, multi-stage pipelines, error recovery, and signal-driven termination cleanup have automated regression coverage in the project test suite and CI workflow.

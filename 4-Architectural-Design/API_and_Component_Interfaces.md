@@ -7,7 +7,7 @@ Simple Shell is a local C program and does not expose a web/REST API. “API” 
 | **Shell Loop** | `src/shell.c` | `include/shell.h` | Prompt, input multiplexing via `poll()`, `SIGCHLD` self-pipe registration, and lifecycle orchestration | `int shell_loop(void);` |
 | **Parser** | `src/parser.c` | `include/parser.h` | Lexing, quotes, escapes, operator pre-validation, AST allocation, and teardown | `int parse_line(const char *, struct Pipeline *, char *, size_t);`<br>`void free_pipeline(struct Pipeline *);` |
 | **Built-ins** | `src/builtins.c` | `include/builtins.h` | Internal commands (`cd`, `pwd`, `echo`, `help`, `exit`) and context-aware execution | `int is_builtin(const char *);`<br>`int run_builtin(const struct Command *, int in_child);` |
-| **Executor** | `src/executor.c` | `include/executor.h` | Process creation, redirection, multi-stage pipelines, foreground waiting, and background reaping | `int execute_pipeline(const struct Pipeline *);`<br>`void reap_background(void);` |
+| **Executor** | `src/executor.c` | `include/executor.h` | Process creation, redirection, multi-stage pipelines, foreground waiting, and background reaping | `int execute_pipeline(const struct Pipeline *);`<br>`void reap_background(void);`<br>`void cleanup_background_jobs(void);` |
 
 ## Interaction Contract
 

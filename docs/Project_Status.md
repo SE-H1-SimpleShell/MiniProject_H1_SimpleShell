@@ -101,7 +101,7 @@ evidence remains tracked in issue #18; the joint review and sign-off is tracked 
 | **Test Plan** | `2-Test-Planning/Test_Plan.md` | **Finalized (IEEE 829/29119-3)** | Sections 3–5 complete; security validation in Section 5.1. |
 | **Traceability Matrix** | `docs/RTM.md` | **Updated** | FR/NFR to use case, module, test, and tracking issue; SR/SO mapping note. |
 | **Test Cases & Procedures** | `docs/Test_Cases.md` | **Complete** | Functional test cases (TC-01..18) and non-functional procedures (NFRV-01..08). |
-| **Test Execution Report** | `docs/Test_Report.md` | **Complete** | Recorded runs across parser, executor, and shell integration suites. |
+| **Test Execution Report** | `docs/Test_Report.md` | **Complete** | Recorded runs across parser, executor, shell integration, and termination cleanup suites (164 checks per build + Valgrind) with historical baseline retained. |
 | **Validation Specification** | `docs/Validation_Specification.md` | **Complete** | Security validation SEC-01..06 and penetration-test plan. |
 | **Project Status** | `docs/Project_Status.md` | **Finalized** | Synchronized with live issues, PRs, and sprint status. |
 | **Sprint Backlog** | `docs/Sprint_Backlog.md` | **Synchronized** | Reflects completed Sprint 1/2/3 work and remaining final checks. |

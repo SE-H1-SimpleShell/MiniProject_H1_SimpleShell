@@ -79,6 +79,7 @@ and deliverables. Section 5.1 is dedicated to security validation.
 | Parser unit harness | Direct tests of `parse_line()` and `free_pipeline()` | `tests/test_parser.c` |
 | Executor harness | Direct tests of `execute_pipeline()` and child handling | `tests/test_executor.c` |
 | Shell integration harness | End-to-end command scenarios through the binary | `tests/test_shell.sh` |
+| Termination cleanup harness | `SIGTERM` interruption of foreground waits and background descendant reaping | `tests/test_termination.py` |
 | Sanitizer build | ASan/UBSan build of the same binaries | `make asan-test` |
 | Valgrind audit | Memory and descriptor checks under Valgrind | `make valgrind` |
 | CI workflow | Build, test, sanitizer, Valgrind, and cleanliness jobs | `.github/workflows/ci.yml` |
@@ -156,8 +157,8 @@ make test
 make asan-test
 ```
 
-`make test` runs the parser harness, executor harness, and shell integration suite. `make asan-test`
-rebuilds with `-fsanitize=address,undefined` and repeats the same tests. Use `make asan-test`, not
+`make test` runs the parser harness (63 assertions), executor harness (29 tests), shell integration suite (70 scenarios), and termination cleanup harness (`tests/test_termination.py`, 2 checks) — 164 checks per build. `make asan-test`
+rebuilds with `-fsanitize=address,undefined` and repeats the same 164 checks. Use `make asan-test`, not
 `make asan && make test`: `make asan` only produces a sanitized binary, and the following
 `make test` would rebuild without sanitizer flags, so nothing would actually be validated under
 ASan or UBSan.

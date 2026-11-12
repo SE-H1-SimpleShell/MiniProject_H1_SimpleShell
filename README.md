@@ -241,6 +241,12 @@ To rebuild the project under AddressSanitizer (ASan) and UndefinedBehaviorSaniti
 make asan-test
 ```
 
+To run Valgrind memory and descriptor checks across the unit harnesses and a pipeline/background/exit scenario:
+
+```bash
+make valgrind
+```
+
 To clean all build artifacts and compiled binaries:
 
 ```bash
@@ -249,10 +255,11 @@ make clean
 
 ### Executed Test Targets
 
-The `make test` and `make asan-test` targets execute three complementary validation suites:
+The `make test` and `make asan-test` targets execute four complementary validation suites and harnesses:
 1. **Parser Unit Tests (`tests/test_parser.c`):** 63 assertions verifying argument tokenization, quote and escape processing, boundary limits (32 vs 33 pipeline stages, 128 vs 129 arguments after the command name), rejected operator combinations, and leak-free memory lifecycle under repeated allocation/free cycles.
 2. **Direct Executor Tests (`tests/test_executor.c`):** 29 component tests verifying external and built-in pipeline execution, multi-stage pipelines (3, 4, and 32 stages), rightmost command exit status capture, waiting for producer, intermediate, and consumer stages independently, pipe capacity deadlock prevention (`seq 50000 | cat | wc -l`), early consumer termination without deadlock, parent state isolation (`cd` in pipeline), foreground child reaping, and 100 2-stage and 50 4-stage pipeline descriptor stress testing under a restricted 64-descriptor `rlimit`.
-3. **Shell Integration Tests (`tests/test_shell.sh`):** 69 end-to-end integration scenarios verifying clean termination (`exit` and EOF), stderr prompt output, built-in execution (`cd`, `pwd`, `echo`, `help`), redirection truncation and append, multi-stage pipelines (3, 4, 5, and 32 stages), pipelines combined with input/output redirections, syntax error recovery without command side-effects or file creation, foreground process synchronization, and non-blocking background execution with real-time asynchronous self-pipe reaping (161 total checks executed per build).
+3. **Shell Integration Tests (`tests/test_shell.sh`):** 70 end-to-end integration scenarios verifying clean termination (`exit` and EOF), stderr prompt output, built-in execution (`cd`, `pwd`, `echo`, `help`), redirection truncation and append, multi-stage pipelines (3, 4, 5, and 32 stages), pipelines combined with input/output redirections, syntax error recovery without command side-effects or file creation, foreground process synchronization, non-blocking background execution with real-time asynchronous self-pipe reaping, and `SIGTERM` background process cleanup.
+4. **Termination & Descendant Cleanup Harness (`tests/test_termination.py`):** 2 checks verifying that `SIGTERM` interrupts foreground waits, stops and reaps spawned descendants in both foreground and background modes, and exits with status `143` (**164 total checks** executed per build).
 
 ---
 
@@ -275,11 +282,13 @@ MiniProject_H1_SimpleShell/
 │   ├── test_parser.c                  # Parser unit tests
 │   ├── test_executor.c                # Executor component tests
 │   ├── test_shell.sh                  # Shell end-to-end integration test harness
+│   ├── test_termination.py            # SIGTERM foreground and descendant cleanup tests
 │   └── test_sanitizers.sh             # Sanitizer build and verification harness
 ├── docs/                              # Canonical project documentation
 │   ├── Architecture.md                # System architecture, process model, self-pipe, deviations
 │   ├── SRS.md                         # Software Requirements Specification
 │   ├── RTM.md                         # Requirements Traceability Matrix
+│   ├── Resource_Audit.md              # Memory, descriptor, and termination resource audit
 │   ├── Test_Cases.md                  # Test case catalog and verification procedures
 │   ├── Test_Report.md                 # Recorded validation evidence and CI run logs
 │   ├── Project_Status.md              # Live project status and deliverable tracking

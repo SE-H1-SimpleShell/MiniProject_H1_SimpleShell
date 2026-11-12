@@ -72,10 +72,14 @@ parent-state isolation, deadlock prevention on high data volumes, child reaping,
 and repeated 2-stage and 4-stage pipelines under a 64-descriptor limit (29 checks).
 The [shell suite](../tests/test_shell.sh) checks syntax recovery without execution/file
 side effects, multi-stage pipelines (3, 4, 5, and 32 stages), large data stream deadlock
-prevention, regression stress loops, and asynchronous background process reaping (69 checks).
-Results and verification evidence are recorded in [Test_Report.md](Test_Report.md).
+prevention, regression stress loops, asynchronous background process reaping, and `SIGTERM`
+background cleanup (70 checks). The [termination harness](../tests/test_termination.py)
+verifies `SIGTERM` interruption of foreground waits and cleanup of background descendants
+(2 checks), bringing total automated checks to **164 checks per build** (`make test` and
+`make asan-test`). Results and verification evidence are recorded in
+[Test_Report.md](Test_Report.md) and [Resource_Audit.md](Resource_Audit.md).
 
-The coverage encompasses Sprint 2 feature PRs and the multi-stage pipeline (#13) and full regression (#16) verification.
+The coverage encompasses Sprint 2 feature PRs, multi-stage pipelines (#13), full regression (#16), and the resource audit (#15).
 
 These are known and deliberately tracked prior to final freeze.
 

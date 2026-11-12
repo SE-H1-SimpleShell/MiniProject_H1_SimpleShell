@@ -267,7 +267,8 @@ configured as follows:
    processes to be reaped while the user is idle at the prompt. Handling occurs when the shell is
    scheduled; it is not a real-time latency guarantee.
 7. **Foreground concurrency reaping:** If a background child finishes while the shell is blocked in
-   `execute_children()` waiting for foreground pipeline stages, the `waitpid(-1, &status, 0)` loop
+   `execute_children()` waiting for foreground pipeline stages, the `waitpid(-1, &status, WNOHANG)`
+   polling loop (with a 10 ms `nanosleep()` backoff and `executor_termination_requested` check)
    detects that the reaped PID belongs to a background job, prints its termination message to
    `stderr`, and continues waiting for the foreground pipeline stages without interruption.
 
@@ -411,9 +412,11 @@ The architecture defines four primary C interfaces:
 
 #### `include/executor.h`
 
+- `extern volatile sig_atomic_t executor_termination_requested`: Signal flag checked during foreground waits so `SIGTERM` triggers prompt descendant teardown.
 - `int execute_pipeline(const struct Pipeline *pipeline)`: Dispatches a single built-in or
   multi-stage children.
 - `void reap_background(void)`: Harvests finished background children via non-blocking `waitpid()`.
+- `void cleanup_background_jobs(void)`: Gracefully signals (`SIGTERM`), waits briefly, force-kills (`SIGKILL`) any remaining background processes/process groups, and reaps all tracked children on shell exit.
 
 The interface summary is maintained in `4-Architectural-Design/API_and_Component_Interfaces.md`.
 
@@ -496,7 +499,7 @@ waiting for a foreground pipeline is still detected and reaped.
 | `waitpid()` other failure | `errno != ECHILD` | `shell: waitpid(<pid>): <errno>` | Report and continue | Shell remains usable |
 | Background capacity exhausted | Background count exceeds the PID table | `shell: too many background processes` | Command is rejected before spawning | Shell remains usable |
 | End of input | `read` returns 0 | Newline on `stderr` | Loop breaks; pipeline storage is released | Clean exit |
-| `SIGTERM` requested | Termination flag set by the signal handler | Cleanup message | Children are reaped; the loop exits | 128 + `SIGTERM` (143) |
+| `SIGTERM` requested | Termination flag set by the signal handler | None (silent graceful teardown) | Remaining foreground/background descendants are signalled and reaped; the loop exits | 128 + `SIGTERM` (143) |
 
 #### 4.5.3 Reporting conventions
 
