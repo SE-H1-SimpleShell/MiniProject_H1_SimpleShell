@@ -23,7 +23,7 @@ validation will be carried out.
 |---|---|---|
 | Actors identified and named | Review `docs/Use_Case_Catalog.md` Section 1 | Number of actors is stated and each actor is named and classified |
 | Use cases grouped by actor | Review `docs/Use_Case_Catalog.md` Section 2 | Every use case is assigned to an actor group |
-| Use case diagram reflects the catalog | Compare `docs/Use_Case_Diagram.mmd` with the catalog | Diagram identifiers and relationships match the catalog exactly |
+| Use case diagram reflects the catalog | Compare `4-Architectural-Design/Use_Case_Diagram.puml` with the catalog | Diagram identifiers and relationships match the catalog exactly |
 | Use cases trace to requirements | Review `docs/RTM.md` | Every use case is referenced by at least one requirement row |
 | No orphan capabilities | Compare `help` output with the catalog | Every documented capability has a use case |
 
@@ -36,7 +36,7 @@ Additional checks:
 - Every requirement carries a stable identifier and appears exactly once in the SRS.
 - Every FR has an explicit, objectively checkable acceptance criterion.
 - Every FR is mapped in the RTM to a use case, an implementation module, a Jira issue and a test.
-- Documented limits in SRS Section 7.1 match the limits enforced in the parser.
+- Documented limits in SRS Section 2.7 match the limits enforced in the parser.
 - Any change to an agreed requirement is reflected in the SRS, the RTM and the test cases together.
 
 ## 5. Functional validation
@@ -93,7 +93,7 @@ authorisation, scope and method for a later execution phase.
 - **Authorisation:** local robustness testing of this project's own binary by the team members,
   on development machines only.
 - **In scope:** the `parse_line` entry point, the interactive command loop, and the parser limits in
-  SRS Section 7.1.
+  SRS Section 2.7.
 - **Out of scope:** any external or third-party system, any networked service (the shell has none),
   privilege escalation, persistence, and any activity that would degrade a shared or production
   system.

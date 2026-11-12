@@ -1,6 +1,6 @@
 # Non-Functional Requirements
 
-Source of truth: [docs/SRS.md, Section 6](../docs/SRS.md).
+Source of truth: [docs/SRS.md, Section 3.3](../docs/SRS.md#33-non-functional-requirements).
 
 | ID | Requirement | Verification summary |
 |---|---|---|

@@ -5,12 +5,19 @@
 **ETA:** 12th October 2026  
 **Status:** Published to GitHub Issues & Board
 
-Status snapshot: Sprint 1 issues and Sprint 2 issues #10, #11, #12, #13, #14, #16, and #17 are completed and verified.
-Operator validation and pipeline verification were merged in [PR #27](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/27),
-background execution was merged in [PR #28](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/28),
-and documentation finalization was merged in [PR #29](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/29).
-Multi-stage pipeline expansion (#13) and full regression testing with RTM sync (#16) are implemented and verified.
-Consult the [live issues](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues) and [board](https://github.com/orgs/SE-H1-SimpleShell/projects/2) for subsequent changes; board cards may lag issue closure.
+Status snapshot (12 November 2026): all Sprint 1 stories and all Sprint 2 development stories
+(#10–#17) are completed and verified. Operator validation and two-stage pipelines were merged in
+[PR #27](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/27), background
+execution in [PR #28](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/28),
+documentation in [PR #29](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/29),
+multi-stage pipelines and regression in
+[PR #31](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/31), and the resource
+audit in [PR #32](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/pull/32).
+
+The final demonstration/release check (#18) and the joint final review (#30) remain open. Sprint 3
+was closed on 9 November 2026 after its three spillover stories (#13, #15, #16) were accepted.
+Consult the [live issues](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues)
+and [board](https://github.com/orgs/SE-H1-SimpleShell/projects/2) for the current state.
 
 ---
 
@@ -55,12 +62,15 @@ Consult the [live issues](https://github.com/SE-H1-SimpleShell/MiniProject_H1_Si
 | [#12](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/12) | [S2-03] Two-Stage Pipeline Implementation Connecting Commands and Built-ins | Advanced Features | FR-06, FR-09, NFR-03 | 5 | @KadakWNL | Done |
 | [#13](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/13) | [S2-04] Multi-Stage Pipeline Expansion & Deadlock Prevention | Advanced Features | FR-05, FR-06, FR-09 | 3 | @sudeeksh02 | Done |
 | [#14](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/14) | [S2-05] Background Command Execution (&) & Asynchronous Zombie Reaping | Advanced Features | FR-07, FR-09 | 5 | @Aqual456 | Done |
-| [#15](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/15) | [S2-06] Comprehensive Resource Audit: Sanitizers, Descriptors & Stress Safety | Testing & Quality | FR-10, NFR-01, NFR-03 | 3 | @Aqual456 | Backlog |
+| [#15](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/15) | [S2-06] Comprehensive Resource Audit: Sanitizers, Descriptors & Stress Safety | Testing & Quality | FR-10, NFR-01, NFR-03 | 3 | @Aqual456 | Done |
 | [#16](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/16) | [S2-07] Full Regression Testing, RTM Traceability Sync & Test Report | Testing & Quality | FR-01–10, NFR-01, NFR-04–07 | 5 | @sudeeksh02 | Done |
 | [#17](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/17) | [S2-08] Documentation Finalization, Architecture Sync & Deviation Log | Documentation & Release | NFR-02, NFR-08 | 3 | @ShrikarDesai07 | Done |
-| [#18](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/18) | [S2-09] 2-Minute Final Demo Video, Release Tag & Development Freeze | Documentation & Release | Deliverable 3.b, 3.d | 2 | @sudeeksh02 | Backlog |
+| [#18](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/18) | [S2-09] 2-Minute Final Demo Video, Release Tag & Development Freeze | Documentation & Release | Deliverable 3.b, 3.d | 2 | @sudeeksh02 | Final check |
 
-**Sprint 2 Velocity:** 34 Story Points
+**Sprint 2 Velocity:** 34 Story Points (32 completed; the 2-point final demo/release check remains open)
+
+**Sprint 3 (2nd Nov – 6th Nov 2026):** spillover stories #13, #15, and #16 were accepted and closed
+on 2–3 November; the milestone was closed on 9 November 2026 with 3 closed / 0 open issues.
 
 ---
 

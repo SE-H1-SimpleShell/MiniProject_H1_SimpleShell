@@ -6,6 +6,11 @@ Jira issue that tracks it, and the test that verifies it.
 Use case identifiers are defined in `docs/Use_Case_Catalog.md`. Verification identifiers for the
 non-functional requirements are defined in `docs/Test_Cases.md`.
 
+Security objectives SO-01 … SO-03 and security requirements SR-01 … SR-04 in `docs/SRS.md`
+Section 3.4 are cross-cutting refinements of the FR/NFR baseline. They map to the rows below and
+are validated by activities SEC-01 … SEC-06 in `docs/Validation_Specification.md` Section 7; they
+do not introduce additional baseline requirement rows.
+
 ## 1. Functional requirements
 
 
@@ -41,12 +46,12 @@ functional test cases.
 |---|---|---|---|---|---|----|
 | NFR-01 | Reliability | All | NFRV-01, TC-17 | Repeated stress and regression runs; ASan/UBSan build | SH-NFR-01 | Implemented & verified; full regression test suite accepted (#16) |
 | NFR-02 | Maintainability | N/A | NFRV-02 | Module/header separation review | SH-NFR-02 | Modular implementation accepted in Sprint 1 |
-| NFR-03 | Memory safety | N/A | NFRV-03 | `make asan-test` with AddressSanitizer and UndefinedBehaviorSanitizer | SH-NFR-03 | Sanitizer checks pass; resource audit pending (#15) |
-| NFR-04 | Usability | All | NFRV-04 | Prompt and diagnostic message review | SH-NFR-04 | Prompt and diagnostic tests pass; terminal review remains |
+| NFR-03 | Memory safety | N/A | NFRV-03 | `make asan-test` with AddressSanitizer and UndefinedBehaviorSanitizer | SH-NFR-03 | Sanitizer checks pass; resource audit accepted (#15, PR #32) |
+| NFR-04 | Usability | All | NFRV-04 | Prompt and diagnostic message review | SH-NFR-04 | Prompt and diagnostic tests pass; review complete |
 | NFR-05 | Portability | N/A | NFRV-05 | Build with GCC, C11, POSIX APIs on the target Linux system | SH-NFR-05 | Linux GCC C11 build and CI pass |
 | NFR-06 | Testability | N/A | NFRV-06 | CI runs `make test` on every push and pull request | SH-NFR-06 | Automated CI active; executor and shell coverage active |
 | NFR-07 | Security hygiene | N/A | NFRV-07 | Malformed-input suite; source check that `system()` is not used | SH-NFR-07 | Validation implemented and accepted (#11) |
-| NFR-08 | Documentation | N/A | NFRV-08 | Documentation review against the supported syntax and limits | SH-NFR-08 | Documentation finalization and architecture sync in progress (#17) |
+| NFR-08 | Documentation | N/A | NFRV-08 | Documentation review against the supported syntax and limits | SH-NFR-08 | Documentation finalized and architecture synced (#17, PR #29); IEEE restructure v2.0 complete |
 
 ## 3. Traceability rules
 
@@ -67,10 +72,14 @@ parent-state isolation, deadlock prevention on high data volumes, child reaping,
 and repeated 2-stage and 4-stage pipelines under a 64-descriptor limit (29 checks).
 The [shell suite](../tests/test_shell.sh) checks syntax recovery without execution/file
 side effects, multi-stage pipelines (3, 4, 5, and 32 stages), large data stream deadlock
-prevention, regression stress loops, and asynchronous background process reaping (69 checks).
-Results and verification evidence are recorded in [Test_Report.md](Test_Report.md).
+prevention, regression stress loops, asynchronous background process reaping, and `SIGTERM`
+background cleanup (70 checks). The [termination harness](../tests/test_termination.py)
+verifies `SIGTERM` interruption of foreground waits and cleanup of background descendants
+(2 checks), bringing total automated checks to **164 checks per build** (`make test` and
+`make asan-test`). Results and verification evidence are recorded in
+[Test_Report.md](Test_Report.md) and [Resource_Audit.md](Resource_Audit.md).
 
-The coverage encompasses Sprint 2 feature PRs and the multi-stage pipeline (#13) and full regression (#16) verification.
+The coverage encompasses Sprint 2 feature PRs, multi-stage pipelines (#13), full regression (#16), and the resource audit (#15).
 
 These are known and deliberately tracked prior to final freeze.
 

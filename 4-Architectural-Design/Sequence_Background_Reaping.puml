@@ -1,0 +1,65 @@
+@startuml Sequence_Background_Reaping
+!pragma layout smetana
+
+title Simple Shell — Background Execution and Asynchronous Reaping
+
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam sequence {
+  ArrowColor #374151
+  LifeLineBorderColor #94A3B8
+  ParticipantBackgroundColor #EEF4FF
+  ParticipantBorderColor #40516D
+}
+autonumber
+
+actor "Interactive User" as User
+participant "shell.c\nShell Loop" as Shell
+participant "parser.c\nParser" as Parser
+participant "executor.c\nExecutor" as Exec
+participant "Child Process" as Child
+participant "POSIX OS\n(SIGCHLD source)" as OS
+participant "Self-Pipe\nsigchld_pipe[2]" as Pipe
+
+User -> Shell : sleep 2 &
+Shell -> Parser : parse_line(line, &pipeline, error, size)
+Parser --> Shell : Pipeline { count = 1, background = 1 }
+Shell -> Exec : execute_pipeline(&pipeline)
+Exec -> Exec : reap_background()\nreserve PID slot
+Exec -> OS : fork()
+OS --> Exec : child pid
+Exec -> OS : setpgid(child, child)
+Exec --> Shell : 0
+Shell --> User : [background pid N]\nprompt returns immediately
+
+note over Shell
+  poll(STDIN_FILENO, sigchld_pipe[0], -1)
+end note
+
+Child -> OS : _exit(0)
+OS -> Pipe : SIGCHLD handler\nwrite(fd, "C", 1)
+note over Pipe
+  Async-signal-safe: no malloc,
+  printf, or waitpid in handler
+end note
+Pipe -> Shell : POLLIN wakes poll()
+Shell -> Shell : process_child_notifications()\ndrain pipe
+Shell -> Exec : reap_background()
+Exec -> OS : waitpid(-1, &status, WNOHANG)
+OS --> Exec : pid, status
+Exec --> Shell : [background pid N exited 0]\n(stderr)
+Shell --> User : prompt remains available
+
+alt SIGCHLD arrives during a foreground wait
+  OS -> Exec : background child terminates\nwhile execute_children() waits
+  Exec -> OS : waitpid(-1, &status, 0)
+  OS --> Exec : background pid, status
+  Exec --> Shell : [background pid N exited 0]\n(stderr)
+  note over Exec
+    The wait loop recognises the PID as a
+    background job and continues waiting
+    for the foreground pipeline stages.
+  end note
+end
+
+@enduml

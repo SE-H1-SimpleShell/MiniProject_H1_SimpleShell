@@ -11,13 +11,13 @@ The Requirements stage package, with each deliverable mapped to the file that sa
 
 | 1 | Problem statement Analysis / Feasibility Testing | `docs/Problem_Statement.md`, `docs/Feasibility_Study.md` | Complete |
 
-| 2 | SRS List | `docs/SRS.md` Section 5 (FR) and Section 6 (NFR) | Complete |
-| 3 | Categorize requirements into FR's and VFR's | `docs/SRS.md` Section 4 — FR and NFR categories with a validation focus per requirement | Complete |
+| 2 | SRS List | `docs/SRS.md` Section 3.2 (FR) and Section 3.3 (NFR) | Complete |
+| 3 | Categorize requirements into FR's and VFR's | `docs/SRS.md` Section 2.6 — FR and NFR categories with a validation focus per requirement | Complete |
 | 4 | Prepare RTM table for the requirements | `docs/RTM.md` | Complete |
 | 5 | Identify the number of actors and name the actors | `docs/Use_Case_Catalog.md` Section 1 — **2 actors** | Complete |
 
 | 6 | Group the use cases based on actors | `docs/Use_Case_Catalog.md` Section 2 | Complete |
-| 7 | Draw use case diagram on actors | `docs/Use_Case_Diagram.mmd`, rendered to `docs/Use_Case_Diagram.png` | Complete |
+| 7 | Draw use case diagram on actors | `4-Architectural-Design/Use_Case_Diagram.puml` (UML), rendered to `4-Architectural-Design/Use_Case_Diagram.svg`/`.png` and `docs/Use_Case_Diagram.png` | Complete |
 | — | Validation Specification | `docs/Validation_Specification.md` | Complete |
 
 
@@ -53,7 +53,7 @@ is associated with them through labelled service relationships.
 |---|---|
 | Customer/user perspective | `Problem_Statement.md` Section 5 names the primary user; `Use_Case_Catalog.md` derives every use case from that user's goals |
 | Use case development | Ten use cases with triggers, actor grouping and relationship semantics, in `Use_Case_Catalog.md` and the use case diagram |
-| Building measurable and testable requirements | Every FR in `SRS.md` has an explicit acceptance criterion; `SRS.md` Section 7.1 states numeric parser limits |
+| Building measurable and testable requirements | Every FR in `SRS.md` has an explicit acceptance criterion; `SRS.md` Section 2.7 states numeric parser limits |
 | Testability of requirements | Every FR maps to a test case and every NFR to a verification procedure in `RTM.md` |
 | Functional validation | `Validation_Specification.md` Section 5, backed by `Test_Cases.md` Section 1 |
 | Non-functional validation | `Validation_Specification.md` Section 6, backed by `Test_Cases.md` Section 2 |
