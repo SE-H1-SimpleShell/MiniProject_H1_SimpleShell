@@ -87,7 +87,7 @@ evidence remains tracked in issue #18; the joint review and sign-off is tracked 
   published as a GitHub release. Final demonstration acceptance remains tracked in
   [issue #18](https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/issues/18).
 - **Documentation restructure:** SRS/Test Plan/SAD restructure is prepared on branch
-  `docs/ieee-restructure` for review before the final submission.
+  `docs/ieee-restructure` and opened as PR #33 for review before the final submission.
 
 ---
 
@@ -114,5 +114,5 @@ evidence remains tracked in issue #18; the joint review and sign-off is tracked 
 
 1. **Final 2-Minute Demo Video (Issue #18):** record and link the final demonstration; complete release acceptance.
 2. **Joint Final Review (Issue #30):** both reviewers sign off on the same final commit after #18 is closed.
-3. **Merge the documentation restructure:** review and merge branch `docs/ieee-restructure` before the submission snapshot.
+3. **Merge the documentation restructure:** review and merge PR #33 before the submission snapshot.
 4. **Refresh the demo evidence index:** attach the final recording and remaining screenshots.
