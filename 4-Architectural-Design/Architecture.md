@@ -153,7 +153,7 @@ kernel supplies process control, signals, pipes, file descriptors, and the files
 
 ### 2.3 Component Diagram
 
-![Component and layered architecture](Architecture.png)
+![Component and layered architecture](Architecture.svg)
 
 The editable PlantUML source is `4-Architectural-Design/Architecture.puml`; vector copies are
 `Architecture.svg` and `Component_Diagram.svg`. The component view shows `main.c`, `shell.c`,
