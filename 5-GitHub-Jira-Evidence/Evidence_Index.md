@@ -5,7 +5,7 @@ Captured on 12 November 2026 from the public repository and organization project
 | Evidence | Status | File / link |
 |---|---|---|
 | Team repository overview | Captured | [`screenshots/01_Team_Repository.png`](screenshots/01_Team_Repository.png) — https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell |
-| Repository folder structure | Captured | [`screenshots/02_Repository_Structure.png`](screenshots/02_Repository_Structure.png) — nine deliverable folders plus `docs/`, `include/`, `src/`, `tests/` |
+| Repository and documentation structure | Captured | [`screenshots/02_Repository_Structure.png`](screenshots/02_Repository_Structure.png) — nine deliverable folders plus the canonical `docs/` files |
 | Commit history | Captured | [`screenshots/03_Commit_History.png`](screenshots/03_Commit_History.png) — https://github.com/SE-H1-SimpleShell/MiniProject_H1_SimpleShell/commits/main |
 | GitHub Project table with estimates, iterations, and linked PRs | Captured | [`screenshots/04_GitHub_Project_Table.png`](screenshots/04_GitHub_Project_Table.png) — Project #2, table view |
 | GitHub Project board | Captured | [`screenshots/05_GitHub_Project_Board.png`](screenshots/05_GitHub_Project_Board.png) — Backlog / Ready / In progress / In review / Done |
