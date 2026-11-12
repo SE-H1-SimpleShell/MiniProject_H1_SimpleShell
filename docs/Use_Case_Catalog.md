@@ -1,7 +1,8 @@
 # Use Case Catalog — Simple Shell
 
 This document identifies and names the actors, and groups the use cases by actor. It is the
-authoritative definition of the use case identifiers used by `Use_Case_Diagram.mmd` and `RTM.md`.
+authoritative definition of the use case identifiers used by
+`4-Architectural-Design/Use_Case_Diagram.puml` and `RTM.md`.
 
 ## 1. Actors
 
@@ -76,6 +77,7 @@ Two modelling rules are worth stating because they are easy to get wrong:
 
 ## 4. Traceability
 
-- Diagram: `docs/Use_Case_Diagram.mmd` (rendered to `docs/Use_Case_Diagram.png`)
+- Diagram: `4-Architectural-Design/Use_Case_Diagram.puml` (UML; rendered to
+  `4-Architectural-Design/Use_Case_Diagram.svg`/`.png` and `docs/Use_Case_Diagram.png`)
 - Requirements: `docs/SRS.md`
 - Requirement-to-use-case-to-test mapping: `docs/RTM.md`

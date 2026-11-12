@@ -23,7 +23,7 @@ validation will be carried out.
 |---|---|---|
 | Actors identified and named | Review `docs/Use_Case_Catalog.md` Section 1 | Number of actors is stated and each actor is named and classified |
 | Use cases grouped by actor | Review `docs/Use_Case_Catalog.md` Section 2 | Every use case is assigned to an actor group |
-| Use case diagram reflects the catalog | Compare `docs/Use_Case_Diagram.mmd` with the catalog | Diagram identifiers and relationships match the catalog exactly |
+| Use case diagram reflects the catalog | Compare `4-Architectural-Design/Use_Case_Diagram.puml` with the catalog | Diagram identifiers and relationships match the catalog exactly |
 | Use cases trace to requirements | Review `docs/RTM.md` | Every use case is referenced by at least one requirement row |
 | No orphan capabilities | Compare `help` output with the catalog | Every documented capability has a use case |
 

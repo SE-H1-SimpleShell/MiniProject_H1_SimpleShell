@@ -158,6 +158,10 @@ The editable PlantUML source is `4-Architectural-Design/Architecture.puml`; vect
 `parser.c`, `executor.c`, and `builtins.c` inside the shell boundary, and the C standard library
 and POSIX services outside it.
 
+The use case model is maintained as UML PlantUML at
+`4-Architectural-Design/Use_Case_Diagram.puml` (rendered to `Use_Case_Diagram.svg`/`.png`) and is
+embedded in `docs/SRS.md` Section 2.2.
+
 ### 2.4 Module Responsibilities
 
 The codebase is organised into five cohesive source modules with explicit header interfaces in
@@ -321,6 +325,59 @@ built from the five source modules. It runs in a Linux terminal as the current u
 server, database, container, or network listener is required. Development and CI use Ubuntu Linux
 with GCC and GNU Make.
 
+### 3.6 Security Architecture View
+
+The security architecture follows the threat model in `docs/Validation_Specification.md` Section 8:
+the parser is the primary attack surface, and the executor is the secondary boundary that forwards
+validated tokens to POSIX process APIs.
+
+#### 3.6.1 Trust boundaries
+
+| Boundary | Untrusted side | Trusted side | Control |
+|---|---|---|---|
+| **B1 — Input → Parser** | Raw command-line text | Parser | Lexical validation, quote/escape handling, operator grammar, and documented limits are checked before the AST is accepted (SR-02). |
+| **B2 — Parser → Executor** | Parsed `struct Pipeline` | Executor | Only validated tokens and file paths cross the boundary; no command string is passed to a shell (SR-01). |
+| **B3 — Child → Parent** | Child process behaviour | Shell loop | The parent relies on the child's exit status and never interprets child output as control input. |
+| **B4 — Signal → Normal context** | Asynchronous `SIGCHLD` | Normal execution context | The handler performs one async-signal-safe `write()`; all allocation, formatting, and `waitpid()` work happens in `poll()`/normal context. |
+
+#### 3.6.2 Assets and threats
+
+| Asset | Threat | Control |
+|---|---|---|
+| Shell process integrity | Malformed input causing memory corruption or a crash | Parser bounds and allocation checks; `free_pipeline()` on every path; ASan/UBSan in CI (SR-03) |
+| User files and redirection targets | A rejected command still creating or truncating a file | Operator pre-validation before `open()`/`O_TRUNC` (SR-02) |
+| Child processes and pipeline stages | Leaked children, zombies, or partial pipelines after a failure | `waitpid()` and `reap_background()`; `reap_spawned_children()` on partial pipeline teardown |
+| Terminal and file descriptors | Descriptor leaks or accidental descriptor inheritance | `FD_CLOEXEC`, immediate close of unused pipe ends, saved/restored parent descriptors (SR-03) |
+| Execution boundary | Command injection or metacharacter re-entry | No `system()`, no `popen()`, direct `execvp()` with an argv array (SR-01) |
+| Shell availability | Malformed input, missing files, or failed syscalls terminating the REPL | Diagnostics plus recovery in the shell loop (SR-04) |
+
+#### 3.6.3 Security controls and design principles
+
+| Control | Implementation | Requirement | Evidence |
+|---|---|---|---|
+| Validate before use | Parser rejects malformed operators, duplicate redirections, and limit violations before execution | SR-02 | TC-11, SEC-01, SEC-02 |
+| Direct execution | `fork()` + `execvp()`; no `system()` or implicit shell layer | SR-01 | SEC-05, NFRV-07 |
+| Memory and descriptor hygiene | `free_pipeline()`; descriptor save/restore; close-on-exec; sanitizer targets | SR-03 | NFRV-03, SEC-06 |
+| Safe failure | Errors reported to `stderr`; the parent loop continues | SR-04 | TC-14, TC-15, SEC-03, SEC-04 |
+| Bounded resources | `MAX_ARGS = 128`, `MAX_PIPE_SEGMENTS = 32`, background PID cap | SR-02 | SEC-02 |
+| Safe signal handling | Self-pipe handler writes one byte; reaping in normal context | SR-04 | TC-13, background reaping tests |
+| Least privilege | The shell runs as the invoking user and does not setuid, install capabilities, or require elevated privileges | SR-01 | Deployment model |
+| Minimal attack surface | No network listener, no dynamic code loading, no configuration language, no plugins | SR-01 | Component view |
+
+The design applies **validate-before-use**, **fail closed on parse**, **least privilege**,
+**minimise attack surface**, **defence in depth** (parser validation plus executor isolation plus
+sanitizer evidence), **safe signal handling**, and **no dynamic code execution**.
+
+#### 3.6.4 Residual risks and limitations
+
+- The shell executes arbitrary programs requested by the user; this is its purpose, not a sandbox.
+- There is no privilege separation, `seccomp` filter, namespace isolation, or resource limit beyond
+  the parser limits and background-process cap.
+- A local user who can already run programs is trusted; the security scope is safe parsing and
+  execution, not multi-tenant isolation.
+- Penetration-style fuzzing is planned but not executed (`docs/Validation_Specification.md`
+  Section 8), and system-call fault injection remains a known test gap (`docs/RTM.md` Section 4).
+
 ## 4. Detailed Design
 
 ### 4.1 API and Component Interfaces
@@ -384,14 +441,73 @@ Execution branches on the parsed pipeline:
 | Pipeline (2–32 stages) | `execute_children()` with `pipe()`/`dup2()` between stages, then wait for all | Each stage is isolated; the rightmost status is the pipeline result |
 | Background command | `execute_children()` without blocking; launch message to `stdout` | Prompt returns immediately; SIGCHLD self-pipe drives later reaping |
 
-### 4.4 Sequence Diagram
+### 4.4 Sequence Diagrams
+
+#### 4.4.1 Foreground command execution
 
 ![Command execution sequence](../4-Architectural-Design/Sequence_Diagram.svg)
 
-The sequence diagram shows the interaction for a foreground command: the user enters a line, the
+The foreground sequence shows the interaction for a single command: the user enters a line, the
 shell loop reads it, the parser tokenises and validates it, the executor forks a child (or runs a
 built-in in the parent), the OS performs the process or file operation, the child exits, and the
 parent waits and redisplays the prompt.
+
+#### 4.4.2 Background execution and asynchronous reaping
+
+![Background execution and asynchronous reaping](../4-Architectural-Design/Sequence_Background_Reaping.svg)
+
+The background sequence shows how a trailing `&` returns the prompt immediately. The child is
+registered in the background PID table, the shell loop blocks in `poll()` on standard input and
+the self-pipe, and the `SIGCHLD` handler writes a single notification byte. `poll()` wakes,
+`process_child_notifications()` drains the pipe, and `reap_background()` calls `waitpid(-1, ...,
+WNOHANG)` to harvest the child and emit `[background pid N exited M]` on `stderr`. The lower
+fragment shows the concurrent case: a background child that finishes while the shell is blocked
+waiting for a foreground pipeline is still detected and reaped.
+
+### 4.5 Error Handling and Recovery Protocols
+
+#### 4.5.1 Protocol rules
+
+| Rule | Requirement |
+|---|---|
+| **P1 — Validate before side effects:** syntax and limit failures are reported before any `fork()`, `open()`, or `O_TRUNC`, so a rejected command cannot create or destroy files. | SR-02 |
+| **P2 — The shell survives command failure:** an error in a command never terminates the interactive loop; the prompt is restored. | SR-04 |
+| **P3 — Child failures are encoded in the exit status:** the child reports a failure through `_exit()`; the parent does not parse child output for control flow. | FR-08, FR-09 |
+| **P4 — Partial pipeline teardown:** if a later `pipe()` or `fork()` fails, already-created descriptors are closed and already-spawned children are reaped before returning. | FR-08, NFR-03 |
+| **P5 — Parent descriptor restoration:** a parent-executed built-in saves `stdin`/`stdout` with `dup()`, applies redirection, and restores the saved descriptors on success and failure. | FR-03, FR-05 |
+| **P6 — Memory release on every iteration:** `free_pipeline()` is called after normal execution, parse failure, empty input, and termination. | FR-10, SR-03 |
+| **P7 — Retry on `EINTR`:** `read`, `poll`, and `waitpid` loops retry when interrupted by a signal. | FR-09 |
+| **P8 — Async-signal-safe notification:** the `SIGCHLD` handler only writes one byte to the self-pipe; all reaping occurs in normal context. | SR-04 |
+
+#### 4.5.2 Error classes and recovery actions
+
+| Error class | Detection | Diagnostic | Recovery | Status |
+|---|---|---|---|---|
+| Malformed syntax, unterminated quote, trailing escape, duplicate redirection, limit exceeded | `parse_line()` returns non-zero | `shell: syntax error: <message>` on `stderr` | Partially allocated tokens are freed; the shell loop continues | Shell remains usable |
+| Memory allocation failure | `malloc`/`strdup` returns `NULL` | `memory allocation failure` in the parser error buffer | Partial structures are released; command is not executed | Shell remains usable |
+| Parent built-in input redirection failure | `open()` or `dup2()` returns `-1` | `shell: cannot open <file>: <errno>` or `shell: dup2: <errno>` | Saved descriptors are restored; the built-in is not executed | Command fails |
+| Child redirection failure | `open()` or `dup2()` returns `-1` in `child_exec()` | `shell: cannot open <file>: <errno>` or `shell: dup2 <stream>: <errno>` | Child calls `_exit(126)` | Exit status 126 |
+| `pipe()` failure | `pipe()` returns non-zero | `shell: pipe: <errno>` | Previous read descriptor is closed; spawned children are reaped | Current pipeline fails, shell continues |
+| `fork()` failure | `fork()` returns `-1` | `shell: fork: <errno>` | Pipe descriptors are closed; spawned children are reaped | Current pipeline fails, shell continues |
+| `execvp()` failure | `execvp()` returns | `shell: <command>: <errno>` | Child calls `_exit(127)` for `ENOENT`, `_exit(126)` otherwise | Exit status 127 or 126 |
+| `waitpid()` interrupted | `errno == EINTR` | No diagnostic | Retry the wait | Wait continues |
+| `waitpid()` other failure | `errno != ECHILD` | `shell: waitpid(<pid>): <errno>` | Report and continue | Shell remains usable |
+| Background capacity exhausted | Background count exceeds the PID table | `shell: too many background processes` | Command is rejected before spawning | Shell remains usable |
+| End of input | `read` returns 0 | Newline on `stderr` | Loop breaks; pipeline storage is released | Clean exit |
+| `SIGTERM` requested | Termination flag set by the signal handler | Cleanup message | Children are reaped; the loop exits | 128 + `SIGTERM` (143) |
+
+#### 4.5.3 Reporting conventions
+
+All diagnostics use the `shell: ` prefix and, where a system call failed, `strerror(errno)`. The
+parent shell never calls `exit()` from an error path; only the normal loop termination path sets
+the process exit status. Child processes use `_exit()` so that buffered parent state is not
+duplicated.
+
+#### 4.5.4 Known limitations
+
+System-call fault injection is not part of the automated suite, so `fork`, `pipe`, `exec`, and
+`waitpid` failure paths are reviewed rather than exercised by a fault-injection harness. This is
+recorded in `docs/RTM.md` Section 4.
 
 ## 5. Architecture Traceability
 

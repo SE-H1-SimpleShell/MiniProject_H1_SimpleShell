@@ -103,6 +103,11 @@ standard library.
 | Background execution and child reaping | FR-07, FR-09 |
 | Diagnostics and safe recovery | FR-08 |
 
+<figure class="figure">
+<img src="../4-Architectural-Design/Use_Case_Diagram.svg" alt="UML use case diagram">
+<figcaption><strong>Figure 1 — UML use case diagram.</strong> The model has two actors: the Interactive User (A1, primary) and the Linux Kernel / POSIX OS (A2, supporting). Use case identifiers and relationship semantics are defined in <code>docs/Use_Case_Catalog.md</code>.</figcaption>
+</figure>
+
 ### 2.3 User Characteristics
 
 The primary user is a student or developer familiar with a Unix-like terminal. The user is expected

@@ -1,0 +1,74 @@
+@startuml Use_Case_Diagram
+!pragma layout smetana
+
+title Simple Shell — UML Use Case Diagram
+
+skinparam shadowing false
+skinparam defaultFontName "Segoe UI"
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #ECFDF5
+  BorderColor #059669
+  ArrowColor #374151
+}
+skinparam rectangle {
+  BackgroundColor #FAFAFA
+  BorderColor #64748B
+}
+skinparam note {
+  BackgroundColor #FEFCE8
+  BorderColor #CA8A04
+}
+
+left to right direction
+
+actor "Interactive User" as A1
+actor "Linux Kernel / POSIX OS" as A2
+
+rectangle "Simple Shell" {
+  usecase "UC-01\nEnter Command Line" as UC01
+  usecase "UC-02\nParse Input & Tokens" as UC02
+  usecase "UC-03\nExecute Command" as UC03
+  usecase "UC-04\nExecute External Program" as UC04
+  usecase "UC-05\nExecute Built-in Command\n(cd, pwd, echo, help, exit)" as UC05
+  usecase "UC-06\nRedirect I/O\n(<, >, >>)" as UC06
+  usecase "UC-07\nExecute Pipeline\n(pipe)" as UC07
+  usecase "UC-08\nRun in Background\n(&)" as UC08
+  usecase "UC-09\nReport Diagnostics\n& Syntax Errors" as UC09
+  usecase "UC-10\nExit Shell Session" as UC10
+}
+
+' Primary actor associations
+A1 -- UC01
+A1 -- UC10
+
+' Include and dispatch
+UC01 ..> UC02 : <<include>>
+UC01 --> UC03
+
+' Generalisation: external and built-in execution specialise Execute Command
+UC04 --|> UC03
+UC05 --|> UC03
+
+' Extensions applied to the shared Execute Command use case
+UC06 ..> UC03 : <<extend>>
+UC07 ..> UC03 : <<extend>>
+UC08 ..> UC03 : <<extend>>
+UC09 ..> UC03 : <<extend>>
+UC09 ..> UC02 : <<extend>>
+
+' Supporting actor: POSIX services used by the use cases
+UC03 -- A2 : waitpid
+UC04 -- A2 : fork / execvp
+UC05 -- A2 : chdir / getcwd
+UC06 -- A2 : open / dup2
+UC07 -- A2 : pipe / dup2
+UC08 -- A2 : waitpid WNOHANG
+
+note bottom of A2
+  A2 is a supporting actor: it supplies
+  POSIX services but does not initiate
+  any use case.
+end note
+
+@enduml

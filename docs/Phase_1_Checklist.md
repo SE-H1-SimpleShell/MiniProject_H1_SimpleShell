@@ -17,7 +17,7 @@ The Requirements stage package, with each deliverable mapped to the file that sa
 | 5 | Identify the number of actors and name the actors | `docs/Use_Case_Catalog.md` Section 1 — **2 actors** | Complete |
 
 | 6 | Group the use cases based on actors | `docs/Use_Case_Catalog.md` Section 2 | Complete |
-| 7 | Draw use case diagram on actors | `docs/Use_Case_Diagram.mmd`, rendered to `docs/Use_Case_Diagram.png` | Complete |
+| 7 | Draw use case diagram on actors | `4-Architectural-Design/Use_Case_Diagram.puml` (UML), rendered to `4-Architectural-Design/Use_Case_Diagram.svg`/`.png` and `docs/Use_Case_Diagram.png` | Complete |
 | — | Validation Specification | `docs/Validation_Specification.md` | Complete |
 
 
