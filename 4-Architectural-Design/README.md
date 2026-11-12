@@ -2,6 +2,7 @@
 
 Contents:
 - [Architecture](Architecture.md) — IEEE 42010/1016 SAD: stakeholders, architectural views, interfaces, traceability, and deviations.
+- [SAD PDF](SAD.pdf) — print-ready export of the canonical SAD (`docs/Architecture.md`).
 - [Architecture Selection and Justification](Architecture_Selection.md).
 - [API and Component Interfaces](API_and_Component_Interfaces.md).
 - **Architecture diagram (PlantUML):** [source](Architecture.puml) · [PNG](Architecture.png) · [SVG](Architecture.svg) — component and layered view with the POSIX services the shell depends on.
